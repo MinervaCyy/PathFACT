@@ -1,0 +1,39 @@
+name: PathFACT CPU Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PathFACT
+        run: python -m pip install .
+
+      - name: Verify CLI
+        run: |
+          pathfact --version
+          pathfact path verify --help
+          pathfact dataset build-paired-sft --help
+          pathfact dataset export-public --help
+          pathfact dataset export-core-candidate --help
+          pathfact dataset export-derived-candidate --help
+          pathfact evaluate saved --help
+
+      - name: Run portable regression tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
