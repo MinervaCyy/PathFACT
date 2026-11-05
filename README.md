@@ -96,6 +96,8 @@ flowchart TB
     RANK -->|"Use 162 strict cases; construct local edits"| BOUNDARY
 
     G09 -->|"Select cases; construct verified edge edits"| CF
+
+    classDef default fill:#EAF3FF,stroke:#477CAF,color:#1E3A5F
 ```
 
 The dataset branch follows weighted task generation through verified Student failures and the paired Gold/Contrastive Teacher targets. G06 freezes the matched SFT examples. G08/G09 are separately constructed evaluation populations; they are not outputs of model training. Original/Stay/Switch triples derive from G09, while ranking eligibility and Boundary-Local resources relate to G06 Train cases. The public CPU package handles graph, solver, data, verification, and saved-output scoring operations; historical Student/Teacher generation, model training, and new model inference require researcher-managed model environments.
