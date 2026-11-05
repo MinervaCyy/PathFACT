@@ -10,16 +10,49 @@ Weighted shortest-path problems have exact, solver-verifiable answers, yet a lan
 
 PathFACT is the framework, dataset suite, and empirical investigation together. Its goal is to make failure-informed shortest-path research inspectable and reusable.
 
-## 2. Research Workflow
+## 2. PathFACT Research Workflow
 
-The workflow connects observed errors to checked supervision and evaluation:
+```mermaid
+flowchart TD
+    G00["G00 — Graph and task generation<br/>Weighted graphs, source–destination pairs,<br/>solver references · 2,200 tasks"]
+    STUDENT["Historical Student response generation<br/>External model inference produces reasoning<br/>traces and predicted paths"]
+    FAIL["Historical failure selection<br/>Apply established case/trace eligibility checks<br/>to saved responses; preserve the selected trace"]
+    TEACHER["Historical Teacher supervision<br/>Gold targets + failure-conditioned<br/>Contrastive targets · external inference"]
+    VERIFY["Verification and validation<br/>Verify final paths; retain recorded validation profiles<br/>141 two-sided reasoning-factuality, 103 VSP-only"]
+    G05["G05 — Paired Student–Teacher data<br/>244 validated pairs"]
+    G06["G06 — SFT resources<br/>Gold: Train-200 + LossVal-44<br/>Contrastive: Train-200 + LossVal-44"]
+    TRAIN["Historical GPU supervised fine-tuning<br/>Researcher-managed model training"]
+    EVALDATA["G08/G09 — Evaluation sets<br/>G08 from G07 (G02 − G05); G09 from G00 − G05<br/>G08: Balanced-300 + TrainDist-300<br/>G09: Balanced-846 + TrainDist-1600"]
+    EVAL["Historical model evaluation<br/>Task-only model requests; saved outputs<br/>scored with PathFACT CPU tools"]
+    CF["Derived: Original/Stay/Switch<br/>354 counterfactual triples"]
+    RANK["Derived: Ranking eligibility<br/>200 G06-linked cases"]
+    BOUNDARY["Derived: Boundary-Local<br/>162 strict-comparison constructions"]
+    CPU["Public CPU framework<br/>Graph generation and solver · verification<br/>dataset processing/export · saved-output scoring<br/>No Student/Teacher inference or GPU training"]
 
-1. **Student:** collect model responses to weighted graph tasks and identify genuine path failures.
-2. **Teacher:** construct Gold task-solving targets and Contrastive corrective targets conditioned on selected Student failures. The released G05 pairs preserve both targets and their validation profiles.
-3. **Verifier:** check extracted routes against graph structure, endpoints, repeated-node constraints, and minimum cost. Dataset processing also checks recorded identities and validation conditions.
-4. **Researcher:** supply model inference and, when needed, training and model-dependent scoring in their own environment; use PathFACT's data and CPU tools to prepare resources and score saved predictions.
+    G00 --> STUDENT --> FAIL --> TEACHER --> VERIFY --> G05 --> G06 --> TRAIN --> EVAL
+    G00 --> EVALDATA
+    FAIL -. "held-out failure-selected cases" .-> EVALDATA
+    G05 -. "G09 excludes G05 cases" .-> EVALDATA
+    EVALDATA --> EVAL
+    EVALDATA --> CF
+    G06 --> RANK --> BOUNDARY
+    CPU -. "public implementation boundary" .-> G00
+    CPU -.-> VERIFY
+    CPU -.-> EVAL
 
-Recorded Teacher validation has limits: 141 of 244 G05 pairs have additional reasoning-factuality validation profiles for both targets; the other 103 have solver-verified final-path checks only. These checks do not establish that every reasoning sentence is correct.
+    classDef external fill:#fff4e5,stroke:#a45b00,stroke-dasharray:5 5;
+    classDef dataset fill:#eaf3ff,stroke:#2463a6;
+    classDef cpu fill:#eaf7ea,stroke:#31823b;
+    class STUDENT,TEACHER,TRAIN,EVAL external;
+    class G00,G05,G06,EVALDATA,CF,RANK,BOUNDARY dataset;
+    class CPU,VERIFY cpu;
+```
+
+The dataset branch follows weighted task generation through verified Student failures and the paired Gold/Contrastive Teacher targets. G06 freezes the matched SFT examples. G08/G09 are separately constructed evaluation populations; they are not outputs of model training. Original/Stay/Switch triples derive from G09, while ranking eligibility and Boundary-Local resources relate to G06 Train cases. The public CPU package handles graph, solver, data, verification, and saved-output scoring operations; historical Student/Teacher generation, model training, and new model inference require researcher-managed model environments.
+
+The 141 G05 pairs with two-sided reasoning-factuality profiles and 103 pairs with final-path checks only remain distinct. A verified final path does not certify every sentence in the associated reasoning text.
+
+[**Browse all 13 released datasets on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT).
 
 ## 3. What PathFACT Provides (C1 framework, C2 dataset suite)
 
