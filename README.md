@@ -10,6 +10,7 @@ Weighted shortest-path problems have exact, solver-verifiable answers, yet a lan
 
 PathFACT is the framework, dataset suite, and empirical investigation together. Its goal is to make failure-informed shortest-path research inspectable and reusable.
 
+
 ## 2. PathFACT Research Workflow
 
 ```mermaid
@@ -30,7 +31,7 @@ PathFACT is the framework, dataset suite, and empirical investigation together. 
 }}%%
 flowchart TB
 
-    %% CONSTRUCTION BACKBONE
+    %% PART A: STUDENT-TEACHER DATA CONSTRUCTION
 
     G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]
 
@@ -53,7 +54,7 @@ flowchart TB
     G04A --> G05
     G04B --> G05
 
-    %% G06: MATCHED TRAINING AND LOSS-VALIDATION DATA
+    %% G06: MATCHED TRAINING AND LOSS VALIDATION
 
     G06["G06 · Split the 244 paired cases<br/>200 train; 44 loss validation"]
 
@@ -65,7 +66,7 @@ flowchart TB
     G06 --> TRAIN
     G06 --> VAL
 
-    %% EVALUATION: TWO DIFFERENT SOURCE POOLS
+    %% EVALUATION DATASET CONSTRUCTION
 
     G07["G07 · Held-out failure pool<br/>G02 minus G05 = 717 cases"]
 
@@ -84,7 +85,7 @@ flowchart TB
     G07 -->|"Select evaluation views"| G08
     POOL09 -->|"Select evaluation views"| G09
 
-    %% DERIVED DATA: CONNECT TO THE CORRECT PARENTS
+    %% DERIVED DATASETS
 
     RANK[["Ranking eligibility<br/>200 training cases"]]
 
@@ -97,18 +98,87 @@ flowchart TB
 
     G09 -->|"Select cases; construct verified edge edits"| CF
 
+    %% PART B: MODEL TRAINING
+    %% EXTERNAL RESEARCHER-MANAGED ENVIRONMENT
+
+    BASE["Base model<br/>No fine-tuning"]
+
+    SFT["Supervised fine-tuning<br/>Vanilla / LIMO / ContrastiveLIMO"]
+
+    RANKTRAIN["Ranking-augmented fine-tuning<br/>Single / Dual Ranking (LIMO-based)"]
+
+    TRAIN -->|"Gold / Contrastive supervision"| SFT
+    VAL -->|"Monitor validation loss"| SFT
+
+    TRAIN -->|"Gold reasoning supervision"| RANKTRAIN
+    RANK -->|"Add Original / Switch preferences"| RANKTRAIN
+    VAL -->|"Monitor validation loss"| RANKTRAIN
+
+    %% PART C: MODEL-DEPENDENT EVALUATION
+
+    TASK_EVAL["Autonomous shortest-path generation<br/>G08 / G09 task-only evaluation"]
+
+    CF_EVAL["Counterfactual autonomous generation<br/>Original / Stay / Switch"]
+
+    PREF_EVAL["Candidate-preference scoring<br/>G06 / G09 and Boundary-Local"]
+
+    BASE --> TASK_EVAL
+    SFT --> TASK_EVAL
+    RANKTRAIN --> TASK_EVAL
+
+    G08 -->|"Task-only evaluation inputs"| TASK_EVAL
+    G09 -->|"Task-only evaluation inputs"| TASK_EVAL
+
+    BASE --> CF_EVAL
+    SFT --> CF_EVAL
+    CF -->|"Verified graph variants"| CF_EVAL
+
+    RANKTRAIN --> PREF_EVAL
+    RANK -->|"G06 preference comparisons"| PREF_EVAL
+    CF -->|"G09 counterfactual comparisons"| PREF_EVAL
+    BOUNDARY -->|"Supporting local comparisons"| PREF_EVAL
+
+    %% PART D: VERIFICATION AND ANALYSIS
+
+    VERIFY["Saved-output verification<br/>Answer extraction / feasibility / optimality"]
+
+    ANALYSIS["Behavioural analysis<br/>Accuracy / graph changes / ranking<br/>Rescues / regressions / costs"]
+
+    TASK_EVAL -->|"Generated responses"| VERIFY
+    CF_EVAL -->|"Generated responses"| VERIFY
+
+    VERIFY --> ANALYSIS
+    PREF_EVAL -->|"Candidate scores and preferences"| ANALYSIS
+
+    %% SHARED NODE STYLE
+
     classDef default fill:#EAF3FF,stroke:#477CAF,color:#1E3A5F
 ```
 
-**How to read the workflow.** Solid arrows show how records are selected or constructed. Dashed arrows remove the G05 supervision cases from evaluation pools. Double-bordered boxes name the published datasets; each named Gold/Contrastive or Balanced/TrainDist entry is a separate JSONL file.
+**How to read the workflow.** The diagram connects four parts of the PathFACT research process: Student–Teacher dataset construction, derived dataset construction, researcher-managed model experiments, and evaluation.
 
-G01–G04 and G07 are intermediate construction gates or records, not additional standalone dataset releases. G03 records historical Teacher-entry coverage: three accepted G02 cases lack that coverage but remain in the G07 pool. The 117 remaining G07 cases form an unpublished reserve. G08 and G09 are parallel evaluation resources, not successive stages; their views can overlap.
+Solid arrows show dataset construction, experimental inputs, or resulting outputs. Dashed arrows indicate exclusion of the G05 supervision cases from the evaluation source pools. Double-bordered boxes identify the 13 published JSONL resources; each Gold/Contrastive or Balanced/TrainDist entry represents a separate file.
 
-Gold and Contrastive use the same 200 training cases and the same 44 loss-validation cases. Training and loss validation are disjoint. Loss validation is not a model-performance test set.
+**Dataset construction.** G01–G04 and G07 are intermediate construction gates or records, not additional standalone dataset releases. G03 records historical Teacher-entry coverage: three G02 cases lack this coverage but remain in the G07 pool. The remaining 117 G07 cases form an unpublished reserve.
 
-**Execution boundary.** Student/Teacher inference, model training, and new model inference require researcher-managed environments. The public CPU package provides graph, solver, data-processing, verification, and saved-output scoring tools. Final-path verification does not certify every sentence of a reasoning trace.
+G08 and G09 are parallel evaluation resources, not successive stages. Their evaluation views may overlap. Gold and Contrastive use the same 200 training cases and the same 44 loss-validation cases. The training and loss-validation partitions are disjoint; loss validation is not a model-performance test set.
+
+**Training methods.** The completed investigation includes Base (no fine-tuning), Vanilla (answer-only SFT), LIMO (ordinary Gold Teacher-reasoning SFT), and ContrastiveLIMO (failure-conditioned corrective SFT).
+
+Single- and Dual-Ranking are additional LIMO-based training conditions. They retain LIMO SFT and add answer-level ranking losses derived from the G06 ranking-eligibility resources. Single-Ranking uses Switch preferences; Dual-Ranking uses both Original and Switch preferences where eligible. The 200 ranking-eligibility records comprise 162 strict bidirectional cases, nine Original-tie/Switch-strict cases, and 29 cases without a qualifying Switch. These comparisons are auxiliary training inputs, not additional Teacher-supervised examples.
+
+**Model evaluation.** Three complementary evaluation pathways are represented:
+
+- **Autonomous shortest-path solving:** task-only generation on G08/G09, including comparisons among the original SFT methods and Single/Dual Ranking.
+- **Counterfactual solving:** independent model responses to Original, Stay, and Switch graph variants. The completed eight-condition study includes Base, canonical SFT checkpoints, and documented alternative training/checkpoint conditions; it is not an evaluation of the Single/Dual Ranking models.
+- **Candidate-preference scoring:** model-dependent comparisons of designated Old/New answers, including Dual-Ranking training-fit analysis, G09 counterfactual preference analysis, and supporting Boundary-Local experiments. Candidate scoring is distinct from autonomous path generation. No completed Boundary-Local task-only VSP result is claimed.
+
+**Verification and analysis.** Generated paths can be checked for validity, feasibility, cost, and optimality against solver references. The completed empirical investigation additionally examines case-level rescues and regressions, changes under graph interventions, candidate preferences, training/checkpoint sensitivity, and computational costs. Final-path verification does not certify every sentence of a model-generated reasoning trace.
+
+**Execution boundary.** Student/Teacher inference, model training, new model inference, and model-dependent candidate likelihood scoring require researcher-managed environments. The public CPU package provides graph generation, shortest-path solving, validated data processing, derived dataset construction, and offline scoring of saved predictions. The diagram describes the research methodology; it does not imply that all historical GPU-dependent experiments are executable through the public package.
 
 [**Browse all 13 released datasets on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT).
+
 
 ## 3. What PathFACT Provides (C1 framework, C2 dataset suite)
 
