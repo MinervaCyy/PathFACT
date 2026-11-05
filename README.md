@@ -16,7 +16,7 @@ PathFACT is the framework, dataset suite, and empirical investigation together. 
 %%{init: {
   "theme": "neutral",
   "themeVariables": {
-    "fontSize": "16px"
+    "fontSize": "18px"
   },
   "flowchart": {
     "htmlLabels": false,
