@@ -13,39 +13,75 @@ PathFACT is the framework, dataset suite, and empirical investigation together. 
 ## 2. PathFACT Research Workflow
 
 ```mermaid
-flowchart TD
-    G00["G00 — Graph and task generation<br/>Weighted graphs, source–destination pairs,<br/>solver references · 2,200 tasks"]
-    STUDENT["Historical Student response generation<br/>External model inference produces reasoning<br/>traces and predicted paths"]
-    FAIL["Historical failure selection<br/>Apply established case/trace eligibility checks<br/>to saved responses; preserve the selected trace"]
-    TEACHER["Historical Teacher supervision<br/>Gold targets + failure-conditioned<br/>Contrastive targets · external inference"]
-    VERIFY["Verification and validation<br/>Verify final paths; retain recorded validation profiles<br/>141 two-sided reasoning-factuality, 103 VSP-only"]
-    G05["G05 — Paired Student–Teacher data<br/>244 validated pairs"]
-    G06["G06 — SFT resources<br/>Gold: Train-200 + LossVal-44<br/>Contrastive: Train-200 + LossVal-44"]
-    TRAIN["Historical GPU supervised fine-tuning<br/>Researcher-managed model training"]
-    EVALDATA["G08/G09 — Evaluation sets<br/>G08 from G07 (G02 − G05); G09 from G00 − G05<br/>G08: Balanced-300 + TrainDist-300<br/>G09: Balanced-846 + TrainDist-1600"]
-    EVAL["Historical model evaluation<br/>Task-only model requests; saved outputs<br/>scored with PathFACT CPU tools"]
-    CF["Derived: Original/Stay/Switch<br/>354 counterfactual triples"]
-    RANK["Derived: Ranking eligibility<br/>200 G06-linked cases"]
-    BOUNDARY["Derived: Boundary-Local<br/>162 strict-comparison constructions"]
-    CPU["Public CPU framework<br/>Graph generation and solver · verification<br/>dataset processing/export · saved-output scoring<br/>No Student/Teacher inference or GPU training"]
+%%{init: {"theme": "neutral", "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 24, "rankSpacing": 28}}}%%
+flowchart TB
 
-    G00 --> STUDENT --> FAIL --> TEACHER --> VERIFY --> G05 --> G06 --> TRAIN --> EVAL
-    G00 --> EVALDATA
-    FAIL -. "held-out failure-selected cases" .-> EVALDATA
-    G05 -. "G09 excludes G05 cases" .-> EVALDATA
-    EVALDATA --> EVAL
-    EVALDATA --> CF
-    G06 --> RANK --> BOUNDARY
-    CPU -. "public implementation boundary" .-> G00
-    CPU -.-> VERIFY
-    CPU -.-> EVAL
+    %% CONSTRUCTION BACKBONE
 
-    classDef external fill:#fff4e5,stroke:#a45b00,stroke-dasharray:5 5;
-    classDef dataset fill:#eaf3ff,stroke:#2463a6;
-    classDef cpu fill:#eaf7ea,stroke:#31823b;
-    class STUDENT,TEACHER,TRAIN,EVAL external;
-    class G00,G05,G06,EVALDATA,CF,RANK,BOUNDARY dataset;
-    class CPU,VERIFY cpu;
+    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]
+
+    G01["G01 · Usable-failure gate<br/>1,525 cases"]
+    G02["G02 · Trace-selection gate<br/>961 cases; one frozen trace each"]
+    G03["G03 · Teacher-entry gate<br/>958 cases with recorded coverage"]
+
+    G04A["G04a · Gold target gate<br/>559 accepted targets"]
+    G04B["G04b · Contrastive target gate<br/>259 accepted targets"]
+
+    G05[["G05 · Paired supervision<br/>244 cases passing BOTH target gates"]]
+
+    G00 -->|"Run Student; retain usable failures"| G01
+    G01 -->|"Select Tier-A traces; freeze one per case"| G02
+    G02 -->|"Retain recorded Teacher entries"| G03
+
+    G03 -->|"Generate and validate Gold targets"| G04A
+    G03 -->|"Generate and validate corrective targets"| G04B
+
+    G04A --> G05
+    G04B --> G05
+
+    %% G06: MATCHED TRAINING AND LOSS-VALIDATION DATA
+
+    G06["G06 · Split the 244 paired cases<br/>200 train; 44 loss validation"]
+
+    TRAIN[["G06 · Training datasets<br/>Gold Train-200<br/>Contrastive Train-200"]]
+
+    VAL[["G06 · Loss-validation datasets<br/>Gold LossVal-44<br/>Contrastive LossVal-44"]]
+
+    G05 --> G06
+    G06 --> TRAIN
+    G06 --> VAL
+
+    %% EVALUATION: TWO DIFFERENT SOURCE POOLS
+
+    G07["G07 · Held-out failure pool<br/>G02 minus G05 = 717 cases"]
+
+    POOL09["G09 · Broader task pool<br/>G00 minus G05 = 1,956 cases"]
+
+    G08[["G08 · Evaluation datasets<br/>Balanced-300<br/>TrainDist-300"]]
+
+    G09[["G09 · Evaluation datasets<br/>Balanced-846<br/>TrainDist-1600"]]
+
+    G02 --> G07
+    G05 -.->|"Exclude these cases"| G07
+
+    G00 --> POOL09
+    G05 -.->|"Exclude these cases"| POOL09
+
+    G07 -->|"Select evaluation views"| G08
+    POOL09 -->|"Select evaluation views"| G09
+
+    %% DERIVED DATA: CONNECT TO THE CORRECT PARENTS
+
+    RANK[["Ranking eligibility<br/>200 training cases"]]
+
+    BOUNDARY[["Boundary-Local<br/>162 training-linked cases"]]
+
+    CF[["Original / Stay / Switch<br/>354 counterfactual triples"]]
+
+    TRAIN -->|"Construct and check path comparisons"| RANK
+    RANK -->|"Use 162 strict cases; construct local edits"| BOUNDARY
+
+    G09 -->|"Select cases; construct verified edge edits"| CF
 ```
 
 The dataset branch follows weighted task generation through verified Student failures and the paired Gold/Contrastive Teacher targets. G06 freezes the matched SFT examples. G08/G09 are separately constructed evaluation populations; they are not outputs of model training. Original/Stay/Switch triples derive from G09, while ranking eligibility and Boundary-Local resources relate to G06 Train cases. The public CPU package handles graph, solver, data, verification, and saved-output scoring operations; historical Student/Teacher generation, model training, and new model inference require researcher-managed model environments.
