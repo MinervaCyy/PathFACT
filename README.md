@@ -13,7 +13,21 @@ PathFACT is the framework, dataset suite, and empirical investigation together. 
 ## 2. PathFACT Research Workflow
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"fontSize": "16px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 22, "rankSpacing": 28}}}%%
+%%{init: {
+  "theme": "neutral",
+  "themeVariables": {
+    "fontSize": "16px"
+  },
+  "flowchart": {
+    "htmlLabels": false,
+    "curve": "linear",
+    "wrappingWidth": 280,
+    "minNodeWidth": 240,
+    "nodeSpacing": 22,
+    "rankSpacing": 22,
+    "padding": 10
+  }
+}}%%
 flowchart TB
 
     %% CONSTRUCTION BACKBONE
