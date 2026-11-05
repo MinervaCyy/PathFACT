@@ -18,11 +18,11 @@ flowchart TB
 
     %% CONSTRUCTION BACKBONE
 
-    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]
+    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]:2
 
-    G01["G01 · Usable-failure gate<br/>1,525 cases"]
-    G02["G02 · Trace-selection gate<br/>961 cases; one frozen trace each"]
-    G03["G03 · Teacher-entry gate<br/>958 cases with recorded coverage"]
+    G01["G01 · Usable-failure gate<br/>1,525 cases"]:2
+    G02["G02 · Trace-selection gate<br/>961 cases; one frozen trace each"]:2
+    G03["G03 · Teacher-entry gate<br/>958 cases with recorded coverage"]:2
 
     G04A["G04a · Gold target gate<br/>559 accepted targets"]
     G04B["G04b · Contrastive target gate<br/>259 accepted targets"]
