@@ -18,7 +18,7 @@ flowchart TB
 
     %% CONSTRUCTION BACKBONE
 
-    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]:2
+    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]
 
     G01["G01 · Usable-failure gate<br/>1,525 cases"]
     G02["G02 · Trace-selection gate<br/>961 cases; one frozen trace each"]
