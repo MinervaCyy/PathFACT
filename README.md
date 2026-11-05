@@ -18,7 +18,7 @@ PathFACT offers a reusable starting point for experiments that would otherwise r
 - **Test changes, not just static questions.** Use Original/Stay/Switch graphs and Old/New path pairs to study whether model decisions respond to changed edge weights.
 - **Work with data on a CPU.** Install the public Python package to prepare supported data, check paths, and score saved predictions. Bring your own model environment for inference or training.
 
-The **v0.1 dataset suite** contains **13 JSONL files: 10 Core and 3 Derived**. PathFACT is the framework, released datasets, and completed empirical investigation together. **ContrastiveLIMO** names one supervised fine-tuning method within PathFACT, not the overall project.
+The **v0.1 dataset suite** contains **13 JSONL files: 10 Core and 3 Derived**. 
 
 ## 2. How PathFACT works
 
