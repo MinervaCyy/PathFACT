@@ -100,9 +100,13 @@ flowchart TB
     classDef default fill:#EAF3FF,stroke:#477CAF,color:#1E3A5F
 ```
 
-The dataset branch follows weighted task generation through verified Student failures and the paired Gold/Contrastive Teacher targets. G06 freezes the matched SFT examples. G08/G09 are separately constructed evaluation populations; they are not outputs of model training. Original/Stay/Switch triples derive from G09, while ranking eligibility and Boundary-Local resources relate to G06 Train cases. The public CPU package handles graph, solver, data, verification, and saved-output scoring operations; historical Student/Teacher generation, model training, and new model inference require researcher-managed model environments.
+**How to read the workflow.** Solid arrows show how records are selected or constructed. Dashed arrows remove the G05 supervision cases from evaluation pools. Double-bordered boxes name the published datasets; each named Gold/Contrastive or Balanced/TrainDist entry is a separate JSONL file.
 
-The 141 G05 pairs with two-sided reasoning-factuality profiles and 103 pairs with final-path checks only remain distinct. A verified final path does not certify every sentence in the associated reasoning text.
+G01–G04 and G07 are intermediate construction gates or records, not additional standalone dataset releases. G03 records historical Teacher-entry coverage: three accepted G02 cases lack that coverage but remain in the G07 pool. The 117 remaining G07 cases form an unpublished reserve. G08 and G09 are parallel evaluation resources, not successive stages; their views can overlap.
+
+Gold and Contrastive use the same 200 training cases and the same 44 loss-validation cases. Training and loss validation are disjoint. Loss validation is not a model-performance test set.
+
+**Execution boundary.** Student/Teacher inference, model training, and new model inference require researcher-managed environments. The public CPU package provides graph, solver, data-processing, verification, and saved-output scoring tools. Final-path verification does not certify every sentence of a reasoning trace.
 
 [**Browse all 13 released datasets on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT).
 
