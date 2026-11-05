@@ -2,213 +2,261 @@
 
 **PathFACT: A Reusable Framework and Dataset for Failure-Informed LLM Shortest-Path Reasoning**
 
-[**Get the PathFACT dataset on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT) — the v0.1 release contains 10 Core and 3 Derived JSONL resources.
+**An LLM can give a convincing explanation and still get the answer wrong. Can we learn more from its mistakes than from correct examples alone?**
 
-## 1. What is PathFACT?
+PathFACT helps researchers study this question. It combines **real model failures**, **two forms of Teacher supervision**, **answers checked by a shortest-path solver**, and **controlled changes to graph problems**. Weighted shortest-path tasks are our testbed because we can check whether a proposed route is valid and whether it is truly the shortest. The broader research questions concern LLM reasoning, supervision, and reliability; transfer to other tasks remains to be tested.
 
-Weighted shortest-path problems have exact, solver-verifiable answers, yet a language model can produce an invalid route or a feasible route that is not minimum-cost. PathFACT uses authentic Student failures and validated Teacher supervision to build reusable training and evaluation resources, and to investigate what models learn from different forms of supervision.
+**Explore the resources:** [Dataset on Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) | [Getting Started](GETTING_STARTED.md) | [Dataset Map](DATASET_MAP.md) | [Data Dictionary](DATA_DICTIONARY.md)
 
-PathFACT is the framework, dataset suite, and empirical investigation together. Its goal is to make failure-informed shortest-path research inspectable and reusable.
+## 1. Why use PathFACT?
 
+PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
 
-## 2. PathFACT Research Workflow
+- **Study real mistakes.** Inspect selected wrong Student answers and frozen reasoning traces, rather than relying only on synthetic errors or correct demonstrations.
+- **Compare how models are taught.** Use matched Gold and failure-guided Contrastive examples to test different supervision methods on the same problems.
+- **Check answers objectively.** Distinguish invalid paths, valid but longer paths, and minimum-cost paths using solver references.
+- **Test changes, not just static questions.** Use Original/Stay/Switch graphs and Old/New path pairs to study whether model decisions respond to changed edge weights.
+- **Work with data on a CPU.** Install the public Python package to prepare supported data, check paths, and score saved predictions. Bring your own model environment for inference or training.
+
+The **v0.1 dataset suite** contains **13 JSONL files: 10 Core and 3 Derived**. PathFACT is the framework, released datasets, and completed empirical investigation together. **ContrastiveLIMO** names one supervised fine-tuning method within PathFACT, not the overall project.
+
+## 2. How PathFACT works
+
+The workflow has three parts: **build supervision from model mistakes**, **prepare evaluation datasets**, and **train and evaluate models**. They connect through the named data stages, but not every stage is a published file.
+
+In the diagrams, **coloured rounded boxes are actions**, **white double-bordered boxes are published datasets**, and **grey boxes are Python processing steps or intermediate records**. The action colours identify six roles: **grey-blue = Task Generator**, **orange = Student**, **purple = Teacher**, **green = Verifier**, **blue = Model Trainer**, and **yellow = Evaluator**.
+
+### Step 1. Turn Student mistakes into paired Teacher examples
+
+First, generate shortest-path problems and compute their correct answers. Ask a Student model to solve them, then keep usable failures and select one frozen wrong reasoning trace per case. A Teacher produces ordinary **Gold** supervision and **failure-guided Contrastive** supervision in parallel. Recorded checks determine which targets can be paired.
 
 ```mermaid
-%%{init: {
-  "theme": "neutral",
-  "themeVariables": {
-    "fontSize": "18px"
-  },
-  "flowchart": {
-    "htmlLabels": false,
-    "curve": "linear",
-    "wrappingWidth": 280,
-    "minNodeWidth": 240,
-    "nodeSpacing": 22,
-    "rankSpacing": 22,
-    "padding": 10
-  }
-}}%%
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 24, "rankSpacing": 28, "wrappingWidth": 300}}}%%
 flowchart TB
+    GEN("Make weighted graphs")
+    SOLVE("Find shortest paths")
+    G00[["G00 - 2,200 graph tasks"]]
 
-    %% PART A: STUDENT-TEACHER DATA CONSTRUCTION
+    STUDENT("Student solves each task")
+    CHECK("Check answers and keep usable failures")
+    G01["G01 - 1,525 failure cases"]
 
-    G00[["G00 · Graph tasks<br/>2,200 tasks with solver answers"]]
+    TRACE("Select one wrong reasoning trace per case")
+    G02["G02 - 961 frozen traces"]
 
-    G01["G01 · Usable-failure gate<br/>1,525 cases"]
-    G02["G02 · Trace-selection gate<br/>961 cases; one frozen trace each"]
-    G03["G03 · Teacher-entry gate<br/>958 cases with recorded coverage"]
+    COVER("Find matching Teacher records")
+    G03["G03 - 958 covered cases"]
 
-    G04A["G04a · Gold target gate<br/>559 accepted targets"]
-    G04B["G04b · Contrastive target gate<br/>259 accepted targets"]
+    GOLD("Teacher writes a Gold response")
+    CORRECT("Teacher writes a failure-guided response")
+    VG("Check Gold response")
+    VC("Check corrective response")
+    G04A["G04a - 559 accepted targets"]
+    G04B["G04b - 259 accepted targets"]
 
-    G05[["G05 · Paired supervision<br/>244 cases passing BOTH target gates"]]
+    PAIR("Keep cases passing both checks")
+    G05[["G05 - 244 paired cases"]]
 
-    G00 -->|"Run Student; retain usable failures"| G01
-    G01 -->|"Select Tier-A traces; freeze one per case"| G02
-    G02 -->|"Retain recorded Teacher entries"| G03
+    SPLIT("Split cases and format examples")
+    TRAIN[["G06 Train - Gold and Contrastive<br/>200 cases in each file"]]
+    VAL[["G06 Loss Validation - Gold and Contrastive<br/>44 cases in each file"]]
 
-    G03 -->|"Generate and validate Gold targets"| G04A
-    G03 -->|"Generate and validate corrective targets"| G04B
+    GEN --> SOLVE --> G00
+    G00 --> STUDENT --> CHECK --> G01
+    G01 --> TRACE --> G02
+    G02 --> COVER --> G03
 
-    G04A --> G05
-    G04B --> G05
+    G03 --> GOLD --> VG --> G04A
+    G03 --> CORRECT --> VC --> G04B
+    G04A --> PAIR
+    G04B --> PAIR
+    PAIR --> G05 --> SPLIT
+    SPLIT --> TRAIN
+    SPLIT --> VAL
 
-    %% G06: MATCHED TRAINING AND LOSS VALIDATION
+    classDef generator fill:#E7EDF5,stroke:#617E9F,color:#263D58
+    classDef student fill:#FCE9D7,stroke:#BE864D,color:#633F1B
+    classDef teacher fill:#EEE4F8,stroke:#9573B8,color:#493068
+    classDef verifier fill:#E3F3E8,stroke:#649773,color:#28573A
+    classDef python fill:#F2F3F5,stroke:#8A929C,color:#364152
+    classDef dataset fill:#FFFFFF,stroke:#364152,color:#1E293B,stroke-width:2px
 
-    G06["G06 · Split the 244 paired cases<br/>200 train; 44 loss validation"]
-
-    TRAIN[["G06 · Training datasets<br/>Gold Train-200<br/>Contrastive Train-200"]]
-
-    VAL[["G06 · Loss-validation datasets<br/>Gold LossVal-44<br/>Contrastive LossVal-44"]]
-
-    G05 --> G06
-    G06 --> TRAIN
-    G06 --> VAL
-
-    %% EVALUATION DATASET CONSTRUCTION
-
-    G07["G07 · Held-out failure pool<br/>G02 minus G05 = 717 cases"]
-
-    POOL09["G09 · Broader task pool<br/>G00 minus G05 = 1,956 cases"]
-
-    G08[["G08 · Evaluation datasets<br/>Balanced-300<br/>TrainDist-300"]]
-
-    G09[["G09 · Evaluation datasets<br/>Balanced-846<br/>TrainDist-1600"]]
-
-    G02 --> G07
-    G05 -.->|"Exclude these cases"| G07
-
-    G00 --> POOL09
-    G05 -.->|"Exclude these cases"| POOL09
-
-    G07 -->|"Select evaluation views"| G08
-    POOL09 -->|"Select evaluation views"| G09
-
-    %% DERIVED DATASETS
-
-    RANK[["Ranking eligibility<br/>200 training cases"]]
-
-    BOUNDARY[["Boundary-Local<br/>162 training-linked cases"]]
-
-    CF[["Original / Stay / Switch<br/>354 counterfactual triples"]]
-
-    TRAIN -->|"Construct and check path comparisons"| RANK
-    RANK -->|"Use 162 strict cases; construct local edits"| BOUNDARY
-
-    G09 -->|"Select cases; construct verified edge edits"| CF
-
-    %% PART B: MODEL TRAINING
-    %% EXTERNAL RESEARCHER-MANAGED ENVIRONMENT
-
-    BASE["Base model<br/>No fine-tuning"]
-
-    SFT["Supervised fine-tuning<br/>Vanilla / LIMO / ContrastiveLIMO"]
-
-    RANKTRAIN["Ranking-augmented fine-tuning<br/>Single / Dual Ranking (LIMO-based)"]
-
-    TRAIN -->|"Gold / Contrastive supervision"| SFT
-    VAL -->|"Monitor validation loss"| SFT
-
-    TRAIN -->|"Gold reasoning supervision"| RANKTRAIN
-    RANK -->|"Add Original / Switch preferences"| RANKTRAIN
-    VAL -->|"Monitor validation loss"| RANKTRAIN
-
-    %% PART C: MODEL-DEPENDENT EVALUATION
-
-    TASK_EVAL["Autonomous shortest-path generation<br/>G08 / G09 task-only evaluation"]
-
-    CF_EVAL["Counterfactual autonomous generation<br/>Original / Stay / Switch"]
-
-    PREF_EVAL["Candidate-preference scoring<br/>G06 / G09 and Boundary-Local"]
-
-    BASE --> TASK_EVAL
-    SFT --> TASK_EVAL
-    RANKTRAIN --> TASK_EVAL
-
-    G08 -->|"Task-only evaluation inputs"| TASK_EVAL
-    G09 -->|"Task-only evaluation inputs"| TASK_EVAL
-
-    BASE --> CF_EVAL
-    SFT --> CF_EVAL
-    CF -->|"Verified graph variants"| CF_EVAL
-
-    RANKTRAIN --> PREF_EVAL
-    RANK -->|"G06 preference comparisons"| PREF_EVAL
-    CF -->|"G09 counterfactual comparisons"| PREF_EVAL
-    BOUNDARY -->|"Supporting local comparisons"| PREF_EVAL
-
-    %% PART D: VERIFICATION AND ANALYSIS
-
-    VERIFY["Saved-output verification<br/>Answer extraction / feasibility / optimality"]
-
-    ANALYSIS["Behavioural analysis<br/>Accuracy / graph changes / ranking<br/>Rescues / regressions / costs"]
-
-    TASK_EVAL -->|"Generated responses"| VERIFY
-    CF_EVAL -->|"Generated responses"| VERIFY
-
-    VERIFY --> ANALYSIS
-    PREF_EVAL -->|"Candidate scores and preferences"| ANALYSIS
-
-    %% SHARED NODE STYLE
-
-    classDef default fill:#EAF3FF,stroke:#477CAF,color:#1E3A5F
+    class GEN generator
+    class STUDENT student
+    class GOLD,CORRECT teacher
+    class SOLVE,CHECK,VG,VC verifier
+    class TRACE,COVER,PAIR,SPLIT,G01,G02,G03,G04A,G04B python
+    class G00,G05,TRAIN,VAL dataset
 ```
 
-**How to read the workflow.** The diagram connects four parts of the PathFACT research process: Student–Teacher dataset construction, derived dataset construction, researcher-managed model experiments, and evaluation.
+**What the numbers mean:** G01 contains 1,525 usable Student failure cases. G02 keeps 961 cases, each with one frozen wrong reasoning trace. G03 records Teacher-entry coverage for 958 cases. The Gold and Contrastive branches accept 559 and 259 targets respectively; **244 cases pass both gates**. Those 244 cases become 200 training cases and 44 separate loss-validation cases, with a Gold and Contrastive file for each split. The two supervision formats use **the same case IDs**. Loss validation monitors training; it is not a task-only evaluation set.
 
-Solid arrows show dataset construction, experimental inputs, or resulting outputs. Dashed arrows indicate exclusion of the G05 supervision cases from the evaluation source pools. Double-bordered boxes identify the 13 published JSONL resources; each Gold/Contrastive or Balanced/TrainDist entry represents a separate file.
+**What is checked:** A solver can verify the final route and its cost. Teacher acceptance also uses documented, branch-specific checks; it does **not** mean every sentence of every Teacher reasoning trace has been independently certified. The frozen Student reasoning trace and its submitted final answer are separate fields; the Contrastive training prompt uses the trace, not necessarily the full submitted final answer. Three G02 cases have no recorded Teacher-entry coverage, but remain in the G07 held-out pool. In G05, 141 paired records carry additional reasoning-factuality profiles, while 103 have final-path checks only. G01-G04 are intermediate selection stages, not extra standalone public JSONL files.
 
-**Dataset construction.** G01–G04 and G07 are intermediate construction gates or records, not additional standalone dataset releases. G03 records historical Teacher-entry coverage: three G02 cases lack this coverage but remain in the G07 pool. The remaining 117 G07 cases form an unpublished reserve.
+### Step 2. Prepare evaluation tasks and graph changes
 
-G08 and G09 are parallel evaluation resources, not successive stages. Their evaluation views may overlap. Gold and Contrastive use the same 200 training cases and the same 44 loss-validation cases. The training and loss-validation partitions are disjoint; loss validation is not a model-performance test set.
+Evaluation datasets come from earlier task records, **not from a newly trained model**. G08 focuses on cases where the original Student failed. G09 draws from a broader set of tasks. Separate Python operations also create two types of graph-change resources: **counterfactual evaluation triples from G09** and **ranking comparisons from G06 training cases**.
 
-**Training methods.** The completed investigation includes Base (no fine-tuning), Vanilla (answer-only SFT), LIMO (ordinary Gold Teacher-reasoning SFT), and ContrastiveLIMO (failure-conditioned corrective SFT).
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 28, "wrappingWidth": 300}}}%%
+flowchart TB
+    G02["G02 - 961 selected Student failures"]
+    G00[["G00 - 2,200 graph tasks"]]
+    G05[["G05 - 244 paired cases"]]
 
-Single- and Dual-Ranking are additional LIMO-based training conditions. They retain LIMO SFT and add answer-level ranking losses derived from the G06 ranking-eligibility resources. Single-Ranking uses Switch preferences; Dual-Ranking uses both Original and Switch preferences where eligible. The 200 ranking-eligibility records comprise 162 strict bidirectional cases, nine Original-tie/Switch-strict cases, and 29 cases without a qualifying Switch. These comparisons are auxiliary training inputs, not additional Teacher-supervised examples.
+    REMOVE08("Leave out G05 cases")
+    G07["G07 - 717 held-out failures"]
+    PICK08("Choose two evaluation views")
+    G08[["G08 - Balanced 300 / TrainDist 300"]]
 
-**Model evaluation.** Three complementary evaluation pathways are represented:
+    REMOVE09("Leave out G05 cases")
+    POOL09["G09 pool - 1,956 remaining tasks"]
+    PICK09("Choose two evaluation views")
+    G09[["G09 - Balanced 846 / TrainDist 1,600"]]
 
-- **Autonomous shortest-path solving:** task-only generation on G08/G09, including comparisons among the original SFT methods and Single/Dual Ranking.
-- **Counterfactual solving:** independent model responses to Original, Stay, and Switch graph variants. The completed eight-condition study includes Base, canonical SFT checkpoints, and documented alternative training/checkpoint conditions; it is not an evaluation of the Single/Dual Ranking models.
-- **Candidate-preference scoring:** model-dependent comparisons of designated Old/New answers, including Dual-Ranking training-fit analysis, G09 counterfactual preference analysis, and supporting Boundary-Local experiments. Candidate scoring is distinct from autonomous path generation. No completed Boundary-Local task-only VSP result is claimed.
+    EDIT("Change an edge weight")
+    CFCHECK("Check which path is shortest")
+    CF[["Derived - Original / Stay / Switch<br/>354 graph triples"]]
 
-**Verification and analysis.** Generated paths can be checked for validity, feasibility, cost, and optimality against solver references. The completed empirical investigation additionally examines case-level rescues and regressions, changes under graph interventions, candidate preferences, training/checkpoint sensitivity, and computational costs. Final-path verification does not certify every sentence of a model-generated reasoning trace.
+    TRAIN[["G06 - 200 training cases"]]
+    PREFBUILD("Build Old/New path comparisons")
+    PREFCHECK("Check route-cost order")
+    RANK[["Derived - Ranking eligibility<br/>200 cases"]]
 
-**Execution boundary.** Student/Teacher inference, model training, new model inference, and model-dependent candidate likelihood scoring require researcher-managed environments. The public CPU package provides graph generation, shortest-path solving, validated data processing, derived dataset construction, and offline scoring of saved predictions. The diagram describes the research methodology; it does not imply that all historical GPU-dependent experiments are executable through the public package.
+    LOCAL("Make small edge-weight changes")
+    LOCALCHECK("Check the one-unit cost difference")
+    BOUND[["Derived - Boundary-Local<br/>162 cases"]]
 
-[**Browse all 13 released datasets on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT).
+    G02 --> REMOVE08 --> G07 --> PICK08 --> G08
+    G05 -.-> REMOVE08
 
+    G00 --> REMOVE09 --> POOL09 --> PICK09 --> G09
+    G05 -.-> REMOVE09
 
-## 3. What PathFACT Provides (C1 framework, C2 dataset suite)
+    G09 --> EDIT --> CFCHECK --> CF
+    TRAIN --> PREFBUILD --> PREFCHECK --> RANK
+    RANK --> LOCAL --> LOCALCHECK --> BOUND
 
-**C1 — Framework.** The public Python 3.12+ CPU package supports configurable graph/task generation, shortest-path solving and route verification, validated data processing, construction of derived dataset resources, and offline scoring of saved predictions. See the CLI below and [Offline Evaluation](docs/EVALUATION.md) for the actual interfaces and scoring limits.
+    classDef generator fill:#E7EDF5,stroke:#617E9F,color:#263D58
+    classDef verifier fill:#E3F3E8,stroke:#649773,color:#28573A
+    classDef python fill:#F2F3F5,stroke:#8A929C,color:#364152
+    classDef dataset fill:#FFFFFF,stroke:#364152,color:#1E293B,stroke-width:2px
 
-The package does not run model inference, GPU training, or model-dependent candidate-path likelihood scoring. Researchers provide those environments and their own predictions. The CPU package does not automatically reproduce historical model-dependent experiments.
+    class EDIT,LOCAL generator
+    class CFCHECK,PREFCHECK,LOCALCHECK verifier
+    class G02,G07,POOL09,REMOVE08,REMOVE09,PICK08,PICK09,PREFBUILD python
+    class G00,G05,G08,G09,TRAIN,CF,RANK,BOUND dataset
+```
 
-**C2 — Dataset suite.** The public v0.1 suite is an independent research resource, not merely example output from the package. It contains **10 Core JSONL resources** and **3 Derived JSONL resources**. Core includes 2,200 standalone tasks, 244 paired Student-failure/Teacher-target records, four frozen G06 training files, and four overlapping G08/G09 evaluation views. Derived includes 354 controlled Original/Stay/Switch triples, 200 ranking-eligibility records, and 162 boundary-local constructions. Counts and relationships are detailed in the [Dataset Map](DATASET_MAP.md); field names and caveats are in the [Data Dictionary](DATA_DICTIONARY.md).
+**Two evaluation populations:** G07 is `G02 minus G05` (717 failures). G08 publishes two disjoint 300-case views; another 117 cases form an unpublished reserve. The G09 pool is `G00 minus G05` (1,956 tasks), from which the 846-case Balanced and 1,600-case TrainDist views are drawn. **The G09 views overlap, and G08/G09 can also overlap.** Across all four public views, there are 3,046 row memberships but 1,859 distinct case IDs. These are not independent repeats of the same-size test population.
 
-The four evaluation views contain 3,046 row memberships but 1,859 unique cases; overlapping views are not independent replications. Keep each record's `reference` out of model input. The Derived resources contain no model responses or learned preference scores.
+**Two different uses for changed graphs:** The 354 Original/Stay/Switch triples come from selected G09 cases and are used to test responses to changed tasks. The 200 G06 ranking-eligibility records instead describe whether the original and modified graphs support a strict Old/New route preference: **162** strict in both directions, **9** tied on Original but strict on Switch, and **29** with no qualifying strict Switch. The 162 Boundary-Local records support a separate, training-related analysis of small cost changes. The released Derived files contain graph-based labels, **not model outputs or learned preference scores**.
 
-## 4. What Do We Investigate? (C3)
+### Step 3. Train models and evaluate their decisions
 
-The empirical investigation compares four conditions: **Base** (no task-specific SFT), **Vanilla-SFT** (answer-only supervised fine-tuning), **LIMO** (ordinary Teacher-reasoning SFT), and **ContrastiveLIMO** (failure-conditioned corrective SFT). These are distinct experimental conditions; the documentation makes no claim that one SFT method is universally superior.
+Researchers can use the released resources to compare **answer-only supervision, ordinary Teacher reasoning, failure-guided correction, and ranking-based training**. Model inference, training, and candidate likelihood scoring run in the researcher's own model environment. After inference, the public CPU tools can score saved, extracted paths.
 
-The completed investigation addresses:
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 28, "wrappingWidth": 300}}}%%
+flowchart TB
+    TRAIN[["G06 - Training examples"]]
+    VAL[["G06 - Loss validation"]]
+    RANK[["Derived - Ranking eligibility"]]
 
-- Task-only shortest-path correctness, accepting any valid minimum-cost route.
-- Case-level rescues and regressions between conditions.
-- Checkpoint and training-recipe sensitivity.
-- Route feasibility versus optimality.
-- Controlled graph changes using Original, Stay, and Switch variants.
-- Candidate-path preference versus autonomous generation.
-- Training and generation costs.
+    BASE["Base model - No fine-tuning"]
+    SFT("Train Vanilla / LIMO / ContrastiveLIMO")
+    RTRAIN("Train Single / Dual Ranking<br/>LIMO SFT + ranking loss")
+    SFTMODEL["SFT model checkpoints"]
+    RANKMODEL["Ranking model checkpoints"]
 
-These questions describe the scope of the empirical work, not guaranteed effects or universal conclusions. Evaluation policies and limits are documented in [Offline Evaluation](docs/EVALUATION.md).
+    TESTS[["G08 / G09 - Evaluation tasks"]]
+    CF[["Derived - Original / Stay / Switch"]]
+    BOUND[["Derived - Boundary-Local"]]
+
+    TASK("Models generate shortest-path answers")
+    CFTEST("Base and selected SFT models<br/>solve changed graphs")
+    PREF("Ranking models score fixed<br/>Old and New paths")
+
+    VERIFY("Check saved paths with the solver")
+    RESULTS("Compare correctness, changes,<br/>preferences and costs")
+
+    TRAIN --> SFT
+    VAL --> SFT
+    TRAIN -->|"Gold / LIMO examples"| RTRAIN
+    VAL --> RTRAIN
+    RANK --> RTRAIN
+
+    SFT --> SFTMODEL
+    RTRAIN --> RANKMODEL
+
+    BASE --> TASK
+    SFTMODEL --> TASK
+    RANKMODEL --> TASK
+    TESTS --> TASK
+
+    BASE --> CFTEST
+    SFTMODEL --> CFTEST
+    CF --> CFTEST
+
+    RANKMODEL --> PREF
+    RANK --> PREF
+    CF --> PREF
+    BOUND --> PREF
+
+    TASK --> VERIFY
+    CFTEST --> VERIFY
+    VERIFY --> RESULTS
+    PREF --> RESULTS
+
+    classDef trainer fill:#DDEEFF,stroke:#558DBB,color:#234E72
+    classDef evaluator fill:#FFF3D5,stroke:#BA9946,color:#66511F
+    classDef verifier fill:#E3F3E8,stroke:#649773,color:#28573A
+    classDef python fill:#F2F3F5,stroke:#8A929C,color:#364152
+    classDef dataset fill:#FFFFFF,stroke:#364152,color:#1E293B,stroke-width:2px
+
+    class SFT,RTRAIN trainer
+    class TASK,CFTEST,PREF,RESULTS evaluator
+    class VERIFY verifier
+    class BASE,SFTMODEL,RANKMODEL python
+    class TRAIN,VAL,RANK,TESTS,CF,BOUND dataset
+```
+
+**Three ways to evaluate a model:**
+
+1. **Generate an answer.** Give the model a new G08/G09 task, without the reference answer. Check whether its route is valid and shortest.
+2. **Solve a changed problem.** Ask the model to solve the Original, Stay, and Switch graphs independently. Compare how its answers change when an edge weight changes.
+3. **Score two supplied answers.** Give a ranking model a fixed Old/New candidate pair. Compare its answer-token likelihood preference with the true route-cost order. This is **not** the same as generating a path without candidates.
+
+**Training methods:** Vanilla uses correct-answer-only targets; LIMO uses ordinary Gold Teacher reasoning; ContrastiveLIMO uses failure-guided corrective reasoning. **Single- and Dual-Ranking are separate LIMO-based training runs**, not further fine-tuning of an existing LIMO checkpoint. Single adds Switch-answer preferences; Dual adds Original and Switch preferences when eligible. The completed experiments did not find a consistent gain in independent G08/G09 solving from the ranking losses. Boundary-Local has completed preference-related analyses, **not** a completed task-only G08/G09 result.
+
+**What the software does:** White boxes identify released data resources, while the training and generation actions require external model environments. The public CPU package supports the documented graph/solver operations, data processing, derived-resource handling, and **scoring of saved predictions**. It does not perform Student/Teacher inference, GPU training, new model generation, or model-dependent candidate-answer NLL scoring. Final-path verification does not certify every sentence of a reasoning trace.
+
+## 3. What is included in v0.1?
+
+| Resource | What you get | Why it matters |
+|---|---|---|
+| **CPU Python framework (C1)** | Configurable graph/task tools, shortest-path solver and route checks, supported data builders/exporters, and saved-prediction scoring | Reuse data and verification steps without the original GPU/HPC environment |
+| **Core datasets (C2)** | 2,200 G00 tasks; 244 G05 paired failures and Teacher targets; four G06 files; four G08/G09 evaluation views | Work from authentic failures, matched supervision, and known test inputs |
+| **Derived datasets (C2)** | 354 counterfactual triples; 200 ranking-eligibility records; 162 Boundary-Local records | Study graph changes and answer-level preferences with solver-derived labels |
+| **Completed experiments (C3)** | SFT comparisons, graph-change tests, Single/Dual Ranking comparisons, and saved evaluation evidence described in project guides | Investigate what training and preference learning do, including where they do not help |
+
+The data is a **standalone research contribution**, not merely a demo for the Python package. Browse the [Dataset Map](DATASET_MAP.md) for the 13 files and their relationships, and the [Data Dictionary](DATA_DICTIONARY.md) for exact fields and validation limits.
+
+## 4. What research questions can PathFACT help answer?
+
+PathFACT is designed for studies of LLM reasoning that can be checked against an exact answer:
+
+- **Learning from mistakes:** Do failure-guided examples change autonomous problem-solving compared with ordinary demonstrations?
+- **Reasoning versus answers:** Can a model produce a plausible explanation but still choose an invalid or longer route?
+- **Robustness to changes:** Does the model respond appropriately when a single graph edge weight changes?
+- **Preference versus generation:** Does learning to rank a correct candidate higher translate into generating the correct answer on its own?
+- **Practical evaluation:** How do task selection, answer extraction, checkpoint choice, and compute costs affect the interpretation of results?
+
+The completed investigation includes Base, Vanilla-SFT, LIMO, ContrastiveLIMO, and the LIMO-based Single/Dual Ranking conditions. Its results are specific to the recorded models, tasks, and training recipes; PathFACT does **not** claim universal improvements or demonstrated transfer to other reasoning domains. See [Offline Evaluation](docs/EVALUATION.md) for scoring rules and limitations.
 
 ## 5. Getting Started
 
-PathFACT requires Python 3.12 or newer:
+The public package requires **Python 3.12 or newer** and runs in a CPU-only environment:
 
 ```bash
 python3.12 -m venv .venv
@@ -216,7 +264,7 @@ source .venv/bin/activate
 python -m pip install -e .
 ```
 
-Inspect supported commands:
+Inspect the supported commands:
 
 ```bash
 pathfact --help
@@ -228,20 +276,22 @@ pathfact dataset export-derived-candidate --help
 pathfact evaluate saved --help
 ```
 
-For a worked dataset example and explanations of model inputs and references, see [Getting Started](GETTING_STARTED.md). Dataset builders consume records supplied by the researcher; the saved-prediction evaluator consumes already extracted candidate paths.
+Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record and instructions for keeping model inputs separate from solver references. Dataset builders require input records supplied by the researcher, and `pathfact evaluate saved` consumes **already extracted paths**, not model outputs generated by the package. You can inspect and use the released datasets without running the original Student/Teacher generation or model training.
 
-## 6. Repository and Dataset Guides
+## 6. Guides and resources
 
-- [Getting Started](GETTING_STARTED.md): shortest-path records, workflow, and first-record example.
-- [Dataset Map](DATASET_MAP.md): all 13 released files, counts, relationships, and evaluation overlap.
-- [Data Dictionary](DATA_DICTIONARY.md): original JSON keys, field meanings, and validation caveats.
-- [Offline Evaluation](docs/EVALUATION.md): prediction inputs, scoring policies, outputs, and limits.
-- [Source Provenance](docs/SOURCE_PROVENANCE.md): verified source history and reproducibility evidence.
-- [Dataset Licensing](docs/DATASET_LICENSE.md): dataset scope and exclusions.
-- [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT): release files, configurations, and dataset licensing disclosures.
+- [Getting Started](GETTING_STARTED.md) - first example and model/reference fields.
+- [Dataset Map](DATASET_MAP.md) - all 13 JSONL files, counts, stages, and overlaps.
+- [Data Dictionary](DATA_DICTIONARY.md) - dataset fields and validation caveats.
+- [Offline Evaluation](docs/EVALUATION.md) - inputs, scoring policies, outputs, and limitations.
+- [Source Provenance](docs/SOURCE_PROVENANCE.md) - verified source history and reproducibility evidence.
+- [Dataset Licensing](docs/DATASET_LICENSE.md) - licence scope and exclusions.
+- [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) - published dataset files and release disclosures.
 
-## 7. Reproducibility, Availability and Licensing
+## 7. Reproducibility, availability, and licensing
 
-The fixed scientific dataset release is [PathFACT v0.1 at revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Documentation changes after that release do not alter its scientific JSONL files. The public software is MIT licensed; the dataset's CC BY 4.0 scope applies only as described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT), including its third-party exclusions. Software licensing does not automatically grant rights to dataset content.
+The frozen scientific dataset release is [PathFACT v0.1 at revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Documentation updates do not change the 13 scientific JSONL resources in that release.
 
-Historical source records and reproducibility evidence are described in [Source Provenance](docs/SOURCE_PROVENANCE.md). Reproducing model-dependent results requires the relevant checkpoints, inference/training setup, and saved outputs; these are not supplied or run by the public CPU package.
+The software is licensed under **MIT**. The dataset has a **limited CC BY 4.0 scope**, with third-party exclusions described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) and [Dataset Licensing](docs/DATASET_LICENSE.md). The software licence does not automatically grant rights to dataset content.
+
+The original model training, Student/Teacher inference, new model generations, and candidate-answer likelihood scoring require researcher-managed environments. The public CPU package does not supply those model environments, historical checkpoints, or all saved experimental outputs. The implemented software and the frozen scientific research records should not be confused: consult [Source Provenance](docs/SOURCE_PROVENANCE.md) and the linked guides for verified scope and limitations.
