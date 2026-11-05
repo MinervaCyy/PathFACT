@@ -2,173 +2,87 @@
 
 **PathFACT: A Reusable Framework and Dataset for Failure-Informed LLM Shortest-Path Reasoning**
 
-PathFACT provides weighted shortest-path tasks, student failure traces,
-teacher corrections, training examples, and evaluation resources.
-Start with the [Getting Started guide](GETTING_STARTED.md), then use the
-[Dataset Map](DATASET_MAP.md) to choose a resource and the
-[Data Dictionary](DATA_DICTIONARY.md) to interpret its fields. The guides
-describe the 13 JSONL files at the fixed public revision linked below. This
-GitHub README is the software project introduction; the separate
-[Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT)
-describes the published dataset, configuration files, and license scope.
+[**Get the PathFACT dataset on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT) — the v0.1 release contains 10 Core and 3 Derived JSONL resources.
 
-PathFACT is a research project developing a reusable framework and curated dataset suite for studying failure-informed large language model reasoning on weighted shortest-path problems.
+## 1. What is PathFACT?
 
-## Project scope
+Weighted shortest-path problems have exact, solver-verifiable answers, yet a language model can produce an invalid route or a feasible route that is not minimum-cost. PathFACT uses authentic Student failures and validated Teacher supervision to build reusable training and evaluation resources, and to investigate what models learn from different forms of supervision.
 
-The project scope includes:
+PathFACT is the framework, dataset suite, and empirical investigation together. Its goal is to make failure-informed shortest-path research inspectable and reusable.
 
-- Configurable weighted graph generation and exact shortest-path solving.
-- Student failure selection and Student-Teacher data construction.
-- Deterministic path verification and dataset validation.
-- Derived shortest-path dataset resources, including the verified counterfactual export. StepPref and model-response preference construction are not implemented.
-- Offline evaluation of saved model responses.
+## 2. Research Workflow
 
-## Execution environments
+The workflow connects observed errors to checked supervision and evaluation:
 
-The public framework is designed for a CPU-only Python environment.
+1. **Student:** collect model responses to weighted graph tasks and identify genuine path failures.
+2. **Teacher:** construct Gold task-solving targets and Contrastive corrective targets conditioned on selected Student failures. The released G05 pairs preserve both targets and their validation profiles.
+3. **Verifier:** check extracted routes against graph structure, endpoints, repeated-node constraints, and minimum cost. Dataset processing also checks recorded identities and validation conditions.
+4. **Researcher:** supply model inference and, when needed, training and model-dependent scoring in their own environment; use PathFACT's data and CPU tools to prepare resources and score saved predictions.
 
-Researchers provide their own environments for model inference, GPU training, and model-dependent candidate-answer likelihood scoring.
+Recorded Teacher validation has limits: 141 of 244 G05 pairs have additional reasoning-factuality validation profiles for both targets; the other 103 have solver-verified final-path checks only. These checks do not establish that every reasoning sentence is correct.
 
-No CUDA, ROCm, PyTorch, or HPC environment is required for the CPU core.
+## 3. What PathFACT Provides (C1 framework, C2 dataset suite)
 
-## Research terminology
+**C1 — Framework.** The public Python 3.12+ CPU package supports configurable graph/task generation, shortest-path solving and route verification, validated data processing, construction of derived dataset resources, and offline scoring of saved predictions. See the CLI below and [Offline Evaluation](docs/EVALUATION.md) for the actual interfaces and scoring limits.
 
-**PathFACT** is the overall framework and dataset project.
+The package does not run model inference, GPU training, or model-dependent candidate-path likelihood scoring. Researchers provide those environments and their own predictions. The CPU package does not automatically reproduce historical model-dependent experiments.
 
-**ContrastiveLIMO** refers specifically to one historical failure-conditioned supervised fine-tuning method.
+**C2 — Dataset suite.** The public v0.1 suite is an independent research resource, not merely example output from the package. It contains **10 Core JSONL resources** and **3 Derived JSONL resources**. Core includes 2,200 standalone tasks, 244 paired Student-failure/Teacher-target records, four frozen G06 training files, and four overlapping G08/G09 evaluation views. Derived includes 354 controlled Original/Stay/Switch triples, 200 ranking-eligibility records, and 162 boundary-local constructions. Counts and relationships are detailed in the [Dataset Map](DATASET_MAP.md); field names and caveats are in the [Data Dictionary](DATA_DICTIONARY.md).
 
-## Dataset Availability
+The four evaluation views contain 3,046 row memberships but 1,859 unique cases; overlapping views are not independent replications. Keep each record's `reference` out of model input. The Derived resources contain no model responses or learned preference scores.
 
-PathFACT v0.1 is publicly available on [Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) and contains 10 Core JSONL resources and 3 Derived JSONL resources. The fixed dataset release revision is [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f).
+## 4. What Do We Investigate? (C3)
 
-The software is licensed under MIT (see `LICENSE`). The dataset is licensed under CC BY 4.0 within the documented licensing scope; third-party rights and exclusions are described in the Dataset Card. Dataset provenance, validation profiles, and scientific limitations are also described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT).
+The empirical investigation compares four conditions: **Base** (no task-specific SFT), **Vanilla-SFT** (answer-only supervised fine-tuning), **LIMO** (ordinary Teacher-reasoning SFT), and **ContrastiveLIMO** (failure-conditioned corrective SFT). These are distinct experimental conditions; the documentation makes no claim that one SFT method is universally superior.
 
-## Development status
+The completed investigation addresses:
 
-The public software is licensed under MIT (see `LICENSE`). The public dataset release and its licensing scope are described in Dataset Availability above. Implemented software capabilities are listed below.
+- Task-only shortest-path correctness, accepting any valid minimum-cost route.
+- Case-level rescues and regressions between conditions.
+- Checkpoint and training-recipe sensitivity.
+- Route feasibility versus optimality.
+- Controlled graph changes using Original, Stay, and Switch variants.
+- Candidate-path preference versus autonomous generation.
+- Training and generation costs.
 
-Historical research records and frozen experimental results are preserved separately.
+These questions describe the scope of the empirical work, not guaranteed effects or universal conclusions. Evaluation policies and limits are documented in [Offline Evaluation](docs/EVALUATION.md).
 
-## Implemented and verified capabilities
+## 5. Getting Started
 
-The current CPU-only Python implementation includes:
+PathFACT requires Python 3.12 or newer:
 
-- Deterministic weighted graph generation and canonical shortest-path solving.
-- Independent shortest-path verification, including feasibility and optimality.
-- Streaming JSONL dataset handling and validation.
-- Local candidate export of validated Student/Gold/Contrastive paired datasets using explicit field allowlists.
-- Local core release-candidate assembly for G00/G05/G06 and the four completed
-  G08/G09 evaluation views.
-- Configurable construction of paired Gold and Contrastive SFT datasets from supplied historical records.
-- Historical path-verifier scoring of saved candidate paths.
-- Historical extraction of shortest-path answers from saved model messages.
-- Offline evaluation summaries and per-case scoring outputs.
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
 
-Automated regression coverage includes portable synthetic-data tests and optional frozen-reference tests.
-Verified references include 2,200 G00 cases, 10,338 G08/G09 saved evaluation records, and 244 G05 paired cases.
-Among the G05 pairs, 141 have additional two-sided reasoning factuality validation; 103 have solver-verified final-path checks only.
-These validation profiles are preserved from historical records; the exporter does not independently re-audit Teacher reasoning.
+Inspect supported commands:
 
-Student inference, Teacher generation, GPU training, and model-dependent scoring are not provided by the CPU-only package.
-The local derived-candidate builder supports the verified 354 G09
-Original/Stay/Switch triples, the 200-case G06 ranking-eligibility partition,
-and the 162-case G06 Boundary-Local resource, for exactly 3 JSONL resources. It excludes model responses and
-StepPref, and emits only a private draft candidate without publication approval.
-See `docs/DERIVED_DATASET_RELEASE_BUILDER.md` for the interface and schemas.
+```bash
+pathfact --help
+pathfact path verify --help
+pathfact dataset build-paired-sft --help
+pathfact dataset export-public --help
+pathfact dataset export-core-candidate --help
+pathfact dataset export-derived-candidate --help
+pathfact evaluate saved --help
+```
 
-## Installation
+For a worked dataset example and explanations of model inputs and references, see [Getting Started](GETTING_STARTED.md). Dataset builders consume records supplied by the researcher; the saved-prediction evaluator consumes already extracted candidate paths.
 
-PathFACT requires Python 3.12 or newer.
+## 6. Repository and Dataset Guides
 
-    python3.12 -m venv .venv
-    source .venv/bin/activate
-    python -m pip install -e .
+- [Getting Started](GETTING_STARTED.md): shortest-path records, workflow, and first-record example.
+- [Dataset Map](DATASET_MAP.md): all 13 released files, counts, relationships, and evaluation overlap.
+- [Data Dictionary](DATA_DICTIONARY.md): original JSON keys, field meanings, and validation caveats.
+- [Offline Evaluation](docs/EVALUATION.md): prediction inputs, scoring policies, outputs, and limits.
+- [Source Provenance](docs/SOURCE_PROVENANCE.md): verified source history and reproducibility evidence.
+- [Dataset Licensing](docs/DATASET_LICENSE.md): dataset scope and exclusions.
+- [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT): release files, configurations, and dataset licensing disclosures.
 
-## Command-line interfaces
+## 7. Reproducibility, Availability and Licensing
 
-Inspect the supported commands:
+The fixed scientific dataset release is [PathFACT v0.1 at revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Documentation changes after that release do not alter its scientific JSONL files. The public software is MIT licensed; the dataset's CC BY 4.0 scope applies only as described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT), including its third-party exclusions. Software licensing does not automatically grant rights to dataset content.
 
-    pathfact --help
-    pathfact path verify --help
-    pathfact dataset build-paired-sft --help
-    pathfact dataset export-public --help
-    pathfact dataset export-core-candidate --help
-    pathfact dataset export-derived-candidate --help
-    pathfact evaluate saved --help
-
-The dataset builder requires source records supplied by the researcher.
-The saved-path evaluator requires previously extracted candidate paths.
-
-### Local candidate dataset export
-
-The candidate exporter accepts canonical G00, G02, G04a, G04b, and G05 JSONL files.
-
-Example:
-
-    pathfact dataset export-public --g00 G00.jsonl --g02 G02.jsonl --g04a G04a.jsonl --g04b G04b.jsonl --g05 G05.jsonl --output-dir candidate_dataset
-
-An optional --expected-records argument enforces an exact case count.
-
-The output directory must not already exist. Successful exports produce
-paired.jsonl and summary.json.
-
-The exporter checks Student failure eligibility, cross-stage identities,
-text hashes, and recorded Teacher validation profiles. It excludes selected
-internal request and service metadata through explicit field allowlists.
-
-This is a local candidate export, not an approved public dataset release.
-Source text still requires content and redistribution-rights review.
-
-### Core dataset release candidate
-
-The core candidate builder assembles allowlisted G00 tasks, the validated G05
-paired dataset, byte-preserved G06 Train/LossVal JSONL files, and normalized
-G08/G09 Balanced and TrainDist views, for exactly 10 JSONL resources. It also creates a draft integrity
-manifest and a local-candidate summary.
-
-    pathfact dataset export-core-candidate --help
-
-The command requires canonical G00/G02/G04a/G04b/G05 inputs, all four G06
-JSONL files, G08 Balanced/TrainDist and G09 Balanced/TrainDist. Its destination
-must not already exist. It excludes G08 Diagnostic-117, G09 Pool-1956 and
-derived datasets, and it does not approve or publish the candidate.
-
-See [Core Dataset Release Builder](docs/CORE_DATASET_RELEASE_BUILDER.md).
-
-See the [Data Dictionary](DATA_DICTIONARY.md) for released fields and the
-[Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT)
-for release configurations and dataset license scope.
-
-For evaluation inputs, outputs, scoring rules, and limitations, see [Offline Evaluation](docs/EVALUATION.md).
-
-## Testing
-
-Run the portable test suite:
-
-    python -m unittest discover -s tests -v
-
-Frozen-source regression checks require separately supplied historical reference datasets and are skipped when their reference environment variables are not configured. The optional variables are `PATHFACT_PIPELINE_REFERENCE`, `PATHFACT_G00_REFERENCE`, and `PATHFACT_G06_REFERENCE`. The supplied latest result was 113 total, 106 passed, and 7 skipped. A fresh audit run without those references also discovered 113 tests, with 103 passed and 10 skipped: seven checks gated by `PATHFACT_PIPELINE_REFERENCE`, two by `PATHFACT_G00_REFERENCE`, and one by `PATHFACT_G06_REFERENCE`. The three additional skips explain the difference from the supplied result; skipped tests are not passes.
-
-## Release boundary
-
-The software is MIT licensed. The public PathFACT v0.1 dataset is licensed under CC BY 4.0 only within the scope documented in its Dataset Card; this does not grant rights to third-party content outside that scope. Researchers supply their own model inference and GPU training environments. Historical Bunya implementation is internal provenance, not a public runtime dependency. Dataset provenance and scientific limitations are documented in the Dataset Card.
-
-## Source provenance
-
-
-
-Historical source fingerprints, implementation mappings, and verified reproducibility evidence are documented in [Source Provenance](docs/SOURCE_PROVENANCE.md).
-
-### Dataset integrity manifests
-
-PathFACT supports CPU-only dataset integrity manifests.
-
-Create: pathfact dataset manifest-create --root-dir candidate_release --artifacts-json artifacts.json --dataset-version local-draft-v0.1
-
-Verify: pathfact dataset manifest-verify --root-dir candidate_release
-
-Verification checks SHA-256, byte sizes, JSONL counts and G05 validation tiers. Source hashes are recorded as provenance metadata, not independently reverified. The local candidate manifests created by these commands remain `draft_not_approved`; verifying them does not authorize publication. This is separate from the already published Hugging Face v0.1 package and its fixed release revision above.
-
-See [Dataset Licensing](docs/DATASET_LICENSE.md) for the dataset's limited
-CC BY 4.0 scope and exclusions.
+Historical source records and reproducibility evidence are described in [Source Provenance](docs/SOURCE_PROVENANCE.md). Reproducing model-dependent results requires the relevant checkpoints, inference/training setup, and saved outputs; these are not supplied or run by the public CPU package.
