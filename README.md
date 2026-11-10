@@ -1,6 +1,6 @@
 # PathFACT
 
-**PathFACT: A Reusable Framework and Dataset for Failure-Informed LLM Shortest-Path Reasoning**
+**PathFACT: A Reusable Framework and Dataset for probing Failure-Informed LLM Reasoning**
 
 **An LLM can give a convincing explanation and still get the answer wrong. Can we learn more from its mistakes than from correct examples alone?**
 
