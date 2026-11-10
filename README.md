@@ -59,9 +59,9 @@ flowchart TB
     COVER("Find matching Teacher records")
     G03["G03 - 958 covered cases"]
 
-    GOLD("Teacher writes a Gold response")
+    GOLD("Teacher writes a ordinary response")
     CORRECT("Teacher writes a failure-guided response")
-    VG("Check Gold response")
+    VG("Check ordinary response")
     VC("Check corrective response")
     G04A["G04a - 559 accepted targets"]
     G04B["G04b - 259 accepted targets"]
