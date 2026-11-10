@@ -1,109 +1,14 @@
 # PathFACT
 
-**PathFACT: A Reusable Framework and Dataset for probing Failure-Informed LLM Reasoning**
+**PathFACT: A Reusable Framework and Dataset for Failure-Informed LLM Shortest-Path Reasoning**
 
-**An LLM can give a convincing explanation and still get the answer wrong. Can LLM learn more from its mistakes than from correct examples alone?**
+[**Get the PathFACT dataset on Hugging Face**](https://huggingface.co/datasets/MinervaCYY/PathFACT) — the v0.1 release contains 10 Core and 3 Derived JSONL resources.
 
-PathFACT helps researchers study this question. It combines **real model failures**, **two forms of Teacher supervision**, **answers checked by a deterministic solver**.
-Weighted shortest-path tasks are our testbed because they allow us to study LLM reasoning under controlled conditions, where correct outcomes can be verified, different types of errors can be distinguished, and changes to the problem can be measured objectively. Hence, they make several important aspects of LLM reasoning observable, measurable, and experimentally testable.
+## 1. What is PathFACT?
 
-**Explore the resources:** [Dataset on Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) | [Getting Started](GETTING_STARTED.md) | [Dataset Map](DATASET_MAP.md) | [Data Dictionary](DATA_DICTIONARY.md)
+Weighted shortest-path problems have exact, solver-verifiable answers, yet a language model can produce an invalid route or a feasible route that is not minimum-cost. PathFACT uses authentic Student failures and validated Teacher supervision to build reusable training and evaluation resources, and to investigate what models learn from different forms of supervision.
 
-## Contents
-
-- [1. Why use PathFACT?](#1-why-use-pathfact)
-- [2. How PathFACT works](#2-how-pathfact-works)
-  - [Step 1. Turn Student mistakes into paired Teacher examples](#step-1-turn-student-mistakes-into-paired-teacher-examples)
-  - [Step 2. Prepare evaluation tasks and graph changes](#step-2-prepare-evaluation-tasks-and-graph-changes)
-  - [Step 3. Train models and evaluate their decisions](#step-3-train-models-and-evaluate-their-decisions)
-- [3. What is included in v0.1?](#3-what-is-included-in-v01)
-- [4. What research questions can PathFACT help answer?](#4-what-research-questions-can-pathfact-help-answer)
-- [5. Getting Started](#5-getting-started)
-- [6. Guides and resources](#6-guides-and-resources)
-- [7. Reproducibility, availability, and licensing](#7-reproducibility-availability-and-licensing)
-
-## 1. Why use PathFACT?
-
-PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
-
-- **Study real mistakes.** Inspect selected wrong Student answers and frozen reasoning traces, rather than relying only on synthetic errors or correct demonstrations.
-- **Compare how models are taught.** Use matched Gold and failure-guided Contrastive examples to test different supervision methods on the same problems.
-- **Check answers objectively.** Distinguish invalid paths, valid but longer paths, and minimum-cost paths using solver references.
-- **Test changes, not just static questions.** Use Original/Stay/Switch graphs and Old/New path pairs to study whether model decisions respond to changed edge weights.
-- **Work with data on a CPU.** Install the public Python package to prepare supported data, check paths, and score saved predictions. Bring your own model environment for inference or training.
-
-## 2. How PathFACT works
-
-The workflow has three parts: **build supervision from model mistakes**, **prepare evaluation datasets**, and **train and evaluate models**. They connect through the named data stages, but not every stage is a published file.
-
-In the diagrams, **coloured rounded boxes are actions**, **white double-bordered boxes are published datasets**, and **grey boxes are Python processing steps or intermediate records**. The action colours identify six roles: **grey-blue = Task Generator**, **orange = Student**, **purple = Teacher**, **green = Verifier**, **blue = Model Trainer**, and **yellow = Evaluator**.
-
-### Step 1. Turn Student mistakes into paired Teacher examples
-
-First, generate shortest-path problems and compute their correct answers. Ask a Student model to solve them, then keep usable failures and select one frozen wrong reasoning trace per case. A Teacher produces ordinary **Gold** supervision and **failure-guided Contrastive** supervision in parallel. Recorded checks determine which targets can be paired.
-
-```mermaid
-%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 24, "rankSpacing": 28, "wrappingWidth": 300}}}%%
-flowchart TB
-    GEN("Make weighted graphs")
-    SOLVE("Find shortest paths")
-    G00[["G00 - 2,200 graph tasks"]]
-
-    STUDENT("Student solves each task")
-    CHECK("Check answers and keep usable failures")
-    G01["G01 - 1,525 failure cases"]
-
-    TRACE("Select one wrong reasoning trace per case")
-    G02["G02 - 961 frozen traces"]
-
-    COVER("Find matching Teacher records")
-    G03["G03 - 958 covered cases"]
-
-    GOLD("Teacher writes a Gold response")
-    CORRECT("Teacher writes a failure-guided response")
-    VG("Check Gold response")
-    VC("Check corrective response")
-    G04A["G04a - 559 accepted targets"]
-    G04B["G04b - 259 accepted targets"]
-
-    PAIR("Keep cases passing both checks")
-    G05[["G05 - 244 paired cases"]]
-
-    SPLIT("Split cases and format examples")
-    TRAIN[["G06 Train - Gold and Contrastive<br/>200 cases in each file"]]
-    VAL[["G06 Loss Validation - Gold and Contrastive<br/>44 cases in each file"]]
-
-    GEN --> SOLVE --> G00
-    G00 --> STUDENT --> CHECK --> G01
-    G01 --> TRACE --> G02
-    G02 --> COVER --> G03
-
-    G03 --> GOLD --> VG --> G04A
-    G03 --> CORRECT --> VC --> G04B
-    G04A --> PAIR
-    G04B --> PAIR
-    PAIR --> G05 --> SPLIT
-    SPLIT --> TRAIN
-    SPLIT --> VAL
-
-    classDef generator fill:#E7EDF5,stroke:#617E9F,color:#263D58
-    classDef student fill:#FCE9D7,stroke:#BE864D,color:#633F1B
-    classDef teacher fill:#EEE4F8,stroke:#9573B8,color:#493068
-    classDef verifier fill:#E3F3E8,stroke:#649773,color:#28573A
-    classDef python fill:#F2F3F5,stroke:#8A929C,color:#364152
-    classDef dataset fill:#FFFFFF,stroke:#364152,color:#1E293B,stroke-width:2px
-
-    class GEN generator
-    class STUDENT student
-    class GOLD,CORRECT teacher
-    class SOLVE,CHECK,VG,VC verifier
-    class TRACE,COVER,PAIR,SPLIT,G01,G02,G03,G04A,G04B python
-    class G00,G05,TRAIN,VAL dataset
-```
-
-**What the numbers mean:** G01 contains 1,525 usable Student failure cases. G02 keeps 961 cases, each with one frozen wrong reasoning trace. G03 records Teacher-entry coverage for 958 cases. The Gold and Contrastive branches accept 559 and 259 targets respectively; **244 cases pass both gates**. Those 244 cases become 200 training cases and 44 separate loss-validation cases, with a Gold and Contrastive file for each split. The two supervision formats use **the same case IDs**. Loss validation monitors training; it is not a task-only evaluation set.
-
-**What is checked:** A solver can verify the final route and its cost. Teacher acceptance also uses documented, branch-specific checks; it does **not** mean every sentence of every Teacher reasoning trace has been independently certified. The frozen Student reasoning trace and its submitted final answer are separate fields; the Contrastive training prompt uses the trace, not necessarily the full submitted final answer. Three G02 cases have no recorded Teacher-entry coverage, but remain in the G07 held-out pool. In G05, 141 paired records carry additional reasoning-factuality profiles, while 103 have final-path checks only. G01-G04 are intermediate selection stages, not extra standalone public JSONL files.
+PathFACT is the framework, dataset suite, and empirical investigation together. Its goal is to make failure-informed shortest-path research inspectable and reusable.
 
 ### Step 2. Prepare evaluation tasks and graph changes
 
