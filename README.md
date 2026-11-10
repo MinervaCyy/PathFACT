@@ -26,7 +26,11 @@ PathFACT helps researchers study this question. It combines **authentic Student 
 PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
 
 - **Study real mistakes.** Inspect selected wrong Student answers and frozen reasoning traces, rather than relying only on synthetic errors or correct demonstrations.
+<<<<<<< HEAD
 - **Compare how models are taught.** Use matched ordinary and failure-guided corrective Teacher examples to compare supervision methods on the same problems.
+=======
+- **Compare how models are taught.** Use matched ordinary and failure-guided Contrastive examples to test different supervision methods on the same problems.
+>>>>>>> 59da50af608c8e7e70124c0a87bd0044fdc794f5
 - **Check answers objectively.** Distinguish invalid paths, valid but longer paths, and minimum-cost paths using solver references.
 - **Test changes, not just static questions.** Use Original/Stay/Switch graphs and Old/New path pairs to study whether model decisions respond to changed edge weights.
 - **Work with data on a CPU.** Install the public Python package to prepare supported data, check paths, and score saved predictions. Bring your own model environment for inference or training.
@@ -37,8 +41,8 @@ The workflow has three parts: **build supervision from model mistakes**, **prepa
 
 In the diagrams, **coloured rounded boxes are actions**, **white double-bordered boxes are published datasets**, and **grey boxes are Python processing steps or intermediate records**. The action colours identify six roles: **grey-blue = Task Generator**, **orange = Student**, **purple = Teacher**, **green = Verifier**, **blue = Model Trainer**, and **yellow = Evaluator**.
 
-### Step 1. Turn Student mistakes into paired Teacher examples
 
+<<<<<<< HEAD
 PathFACT starts with weighted shortest-path problems and solver-verified answers (G00). A Student model attempts the problems, and the recorded checks identify 1,525 usable failure cases (G01). From these, 961 cases are selected, each with one frozen incorrect Student reasoning trace (G02). The frozen trace is distinct from the Student's submitted final answer.
 
 The Teacher produces two forms of candidate supervision. For **ordinary reasoning** (used by LIMO), the Teacher receives only the graph problem. For **corrective reasoning** (used by ContrastiveLIMO), the Teacher receives the same problem together with the frozen incorrect Student reasoning trace and corrective instructions. The recorded responses are checked separately (G04a/G04b), cases with accepted targets in both conditions are paired (G05), and matched supervised training and loss-validation resources are prepared (G06). The figure shows these conceptual operations rather than every historical data-consolidation step.
@@ -77,17 +81,73 @@ flowchart TB
     G05 --> FORMAT
     FORMAT --> TRAIN
     FORMAT --> VAL
+=======
+### Step 1. Turn Student Mistakes into Paired Teacher Examples
 
-    classDef generator fill:#E7EDF5,stroke:#617E9F,color:#263D58
+PathFACT begins by generating weighted shortest-path problems with solver-verified answers. A Student model attempts these problems, and we select genuine failures with recorded reasoning traces.
+
+For each selected case with available Teacher records, we examine two forms of supervision:
+
+- **Ordinary reasoning:** The Teacher solves the original graph problem without seeing the Student's incorrect reasoning.
+- **Contrastive reasoning:** The Teacher receives the graph problem together with the Student's frozen reasoning trace and instructions to provide a corrective response.
+
+After validating the Teacher responses, we retain cases where **both forms of supervision are accepted**. These paired cases are then divided into training and loss-validation datasets.
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 30, "rankSpacing": 36, "wrappingWidth": 320}}}%%
+flowchart TB
+
+    G00[["G00: 2,200 weighted graph problems<br/>with verified shortest paths"]]
+
+    STUDENT("Student attempts the problems")
+
+    G01["G01: 1,525 usable Student failures"]
+
+    G02["G02: 961 selected failures<br/>One frozen reasoning trace per case"]
+
+    G03["G03: 958 cases with Teacher records"]
+
+    ORDINARY("Ordinary Teacher response<br/>Uses the graph problem")
+
+    CORRECTIVE("Contrastive Teacher response<br/>Uses the graph and Student trace")
+
+    G04A["G04a: 559 accepted<br/>ordinary responses"]
+
+    G04B["G04b: 259 accepted<br/>corrective responses"]
+
+    G05[["G05: 244 paired cases<br/>Both Teacher responses accepted"]]
+
+    TRAIN[["G06 Training<br/>200 cases, two supervision files"]]
+
+    VAL[["G06 Loss Validation<br/>44 cases, two supervision files"]]
+
+    G00 --> STUDENT
+    STUDENT --> G01
+    G01 -->|"Select and preserve reasoning traces"| G02
+    G02 -->|"Match available Teacher records"| G03
+
+    G03 --> ORDINARY
+    G03 --> CORRECTIVE
+
+    ORDINARY -->|"Validate"| G04A
+    CORRECTIVE -->|"Validate"| G04B
+
+    G04A --> G05
+    G04B --> G05
+
+    G05 --> TRAIN
+    G05 --> VAL
+>>>>>>> 59da50af608c8e7e70124c0a87bd0044fdc794f5
+
     classDef student fill:#FCE9D7,stroke:#BE864D,color:#633F1B
     classDef teacher fill:#EEE4F8,stroke:#9573B8,color:#493068
-    classDef verifier fill:#E3F3E8,stroke:#649773,color:#28573A
-    classDef python fill:#F2F3F5,stroke:#8A929C,color:#364152
+    classDef intermediate fill:#F2F3F5,stroke:#8A929C,color:#364152
+    classDef accepted fill:#E3F3E8,stroke:#649773,color:#28573A
     classDef dataset fill:#FFFFFF,stroke:#364152,color:#1E293B,stroke-width:2px
 
-    class GEN generator
     class STUDENT student
     class ORDINARY,CORRECTIVE teacher
+<<<<<<< HEAD
     class SOLVE,CHECK,VERIFY_ORDINARY,VERIFY_CORRECTIVE verifier
     class G01,TRACE,G02,G04A,G04B,FORMAT python
     class G00,G05,TRAIN,VAL dataset
@@ -102,6 +162,23 @@ flowchart TB
 **How G04 differs from G03:** G03 checks whether records from separate research runs can be consistently connected to the selected Student failures. G04a and G04b instead select Teacher responses from recorded generations using the relevant acceptance procedures: **559 ordinary cases** and **259 corrective cases**, respectively. **G05 keeps the 244 cases that satisfy both conditions.** Some historical protocols generated multiple Teacher attempts per case, so neither G03 nor G04 counts should be read as an attempt count. G03 remains part of the frozen scientific records even though the figure focuses on the reusable Student–Teacher–Verifier method.
 
 **Verification and reproducibility:** The solver checks the final route for feasibility and minimum cost, but these checks do not independently certify the entire reasoning trace. Among the 244 G05 pairs, **141 have additional recorded reasoning-factuality validation profiles for both Teacher targets**, while **103 have final-path checks only**. The published G06 filenames and some schema keys retain `gold` for the ordinary condition; these identifiers are kept unchanged for compatibility, although the research explanation uses **ordinary reasoning** for LIMO. G01–G04 are intermediate construction records, not additional standalone public JSONL datasets. See the [Dataset Map](DATASET_MAP.md), [Data Dictionary](DATA_DICTIONARY.md), and [Source Provenance](docs/SOURCE_PROVENANCE.md) for stage counts, validation scope, and historical lineage. The public CPU package does not run Student/Teacher inference or GPU training.
+=======
+    class G01,G02,G03 intermediate
+    class G04A,G04B accepted
+    class G00,G05,TRAIN,VAL dataset
+```
+
+**How to read the figure:** Orange represents the Student, purple represents the two Teacher response types, grey represents intermediate records, and green represents accepted Teacher targets. White double-bordered boxes are published dataset resources.
+
+**Why do 559 and 259 become 244?** The ordinary and corrective responses are validated separately. G05 contains only the **244 cases accepted in both branches**, not the sum of their accepted responses.
+
+**What happens at G06?** We split these 244 paired cases into 200 training cases and 44 loss-validation cases. Each split has an ordinary reasoning file for LIMO and a corrective reasoning file for ContrastiveLIMO. The two supervision formats use the same case IDs. Loss validation monitors training loss; it is not an independent task-solving test set.
+
+**What is verified?** The solver checks final paths for feasibility and optimality. Teacher acceptance includes additional recorded checks, but does not certify every sentence of every reasoning trace. In G05, 141 pairs have additional reasoning-factuality validation profiles, while 103 have final-path verification only. The Student's frozen reasoning trace and submitted final answer are separate records.
+
+G01–G04 are intermediate construction stages, not separately published datasets.
+
+>>>>>>> 59da50af608c8e7e70124c0a87bd0044fdc794f5
 
 ### Step 2. Prepare evaluation tasks and graph changes
 
