@@ -4,7 +4,8 @@
 
 **An LLM can give a convincing explanation and still get the answer wrong. Can LLM learn more from its mistakes than from correct examples alone?**
 
-PathFACT helps researchers study this question. It combines **real model failures**, **two forms of Teacher supervision**, **answers checked by a deterministic solver**, and **controlled changes to graph problems**. Weighted shortest-path tasks are our testbed because we can check whether a proposed route is valid and whether it is truly the shortest. The broader research questions concern LLM reasoning, supervision, and reliability; transfer to other tasks remains to be tested.
+PathFACT helps researchers study this question. It combines **real model failures**, **two forms of Teacher supervision**, **answers checked by a deterministic solver**, and **controlled changes to graph problems**.
+Weighted shortest-path tasks are our testbed because they allow us to study LLM reasoning under controlled conditions, where correct outcomes can be verified, different types of errors can be distinguished, and changes to the problem can be measured objectively. Also, they make several important aspects of LLM reasoning observable, measurable, and experimentally testable.
 
 **Explore the resources:** [Dataset on Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) | [Getting Started](GETTING_STARTED.md) | [Dataset Map](DATASET_MAP.md) | [Data Dictionary](DATA_DICTIONARY.md)
 
