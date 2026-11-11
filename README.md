@@ -1,10 +1,10 @@
 # PathFACT
 
-**PathFACT: A Reusable Framework and Dataset for Failure-Informed LLM Shortest-Path Reasoning**
+**PathFACT: A Reusable Framework and Dataset for probing Failure-Informed LLM Reasoning**
 
 **An LLM can give a convincing explanation and still get the answer wrong. Can LLMs learn more from mistakes than from correct examples alone?**
 
-PathFACT helps researchers study this question. It combines **authentic Student failures**, **two forms of Teacher supervision**, and **answers checked by a deterministic solver**. Weighted shortest-path tasks provide a controlled testbed: correct outcomes can be verified, different types of errors can be distinguished, and the effects of changing a problem can be measured objectively.
+PathFACT helps researchers study this question. It combines **authentic Student failures**, **two forms of Teacher supervision**, and **answers checked by a deterministic solver**. Weighted shortest-path tasks are our testbed because they allow us to study LLM reasoning under controlled conditions, where correct outcomes can be verified, different types of errors can be distinguished, and changes to the problem can be measured objectively. Hence, they make several important aspects of LLM reasoning observable, measurable, and experimentally testable.
 
 **Explore the resources:** [Dataset on Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) | [Getting Started](GETTING_STARTED.md) | [Dataset Map](DATASET_MAP.md) | [Data Dictionary](DATA_DICTIONARY.md)
 
