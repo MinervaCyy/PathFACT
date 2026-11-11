@@ -25,11 +25,17 @@ PathFACT helps researchers study this question. It combines **authentic Student 
 
 PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
 
-- **Study real mistakes.** Inspect selected wrong Student answers and frozen reasoning traces, rather than relying only on synthetic errors or correct demonstrations.
-- **Compare how models are taught.** Use matched ordinary and failure-guided corrective Teacher examples to compare supervision methods on the same problems.
-- **Check answers objectively.** Distinguish invalid paths, valid but longer paths, and minimum-cost paths using solver references.
-- **Test changes, not just static questions.** Use Original/Stay/Switch graphs and Old/New path pairs to study whether model decisions respond to changed edge weights.
-- **Work with data on a CPU.** Install the public Python package to prepare supported data, check paths, and score saved predictions. Bring your own model environment for inference or training.
+**PathFACT turns real LLM mistakes into reusable training data and test cases**. It connects actual failed attempts, Teacher-generated solutions, and mathematically verified answers, allowing researchers to investigate how different learning approaches affect a model's ability to solve problems.
+
+- **Explore real LLM mistakes.** Examine shortest-path problems that a Student model actually failed to solve, including its submitted answers and recorded reasoning traces. These are genuine model failures, not artificially invented mistakes.
+
+- **Compare different ways of learning.** Study three approaches on matched problems: learning from correct answers alone (*Vanilla-SFT*), learning from ordinary Teacher reasoning (*LIMO*), and learning from Teacher reasoning that explicitly addresses a recorded Student failure (*ContrastiveLIMO*). This helps investigate whether learning from mistakes offers benefits beyond conventional demonstrations.
+
+- **Know whether a solution is actually correct.** Every shortest-path problem has a mathematically verifiable answer. Instead of relying on an LLM to judge another LLM, PathFACT uses a shortest-path solver to distinguish invalid routes, valid but more expensive routes, and minimum-cost routes.
+
+- **Test whether models adapt when problems change.** What happens when the cost of a connection increases? Does the model recognise when the original best route remains optimal, or when another route becomes better? PathFACT provides controlled graph changes and candidate-route comparisons to investigate these questions.
+
+- **Use the data and tools without specialised hardware.** Explore the released datasets, generate supported graph tasks, verify routes, and evaluate saved model predictions using the public CPU-only Python framework. Researchers can use their own model environments for new inference and training.
 
 ## 2. How PathFACT works
 
@@ -103,9 +109,57 @@ flowchart TB
 
 **Verification and reproducibility:** The solver checks the final route for feasibility and minimum cost, but these checks do not independently certify the entire reasoning trace. Among the 244 G05 pairs, **141 have additional recorded reasoning-factuality validation profiles for both Teacher targets**, while **103 have final-path checks only**. The published G06 filenames and some schema keys retain `gold` for the ordinary condition; these identifiers are kept unchanged for compatibility, although the research explanation uses **ordinary reasoning** for LIMO. G01–G04 are intermediate construction records, not additional standalone public JSONL datasets. See the [Dataset Map](DATASET_MAP.md), [Data Dictionary](DATA_DICTIONARY.md), and [Source Provenance](docs/SOURCE_PROVENANCE.md) for stage counts, validation scope, and historical lineage. The public CPU package does not run Student/Teacher inference or GPU training.
 
-### Step 2. Prepare evaluation tasks and graph changes
+### Step 2. Prepare Evaluation Tasks and Test Changes in Graph Costs
 
-Evaluation datasets come from earlier task records, **not from a newly trained model**. G08 focuses on cases where the original Student failed. G09 draws from a broader set of tasks. Separate Python operations also create two types of graph-change resources: **counterfactual evaluation triples from G09** and **ranking comparisons from G06 training cases**.
+After building training examples in Step 1, we want to investigate two questions: **Can a model solve shortest-path problems it was not trained on? And can it recognise when changing a link's cost changes which route is best?**
+
+PathFACT provides evaluation tasks and controlled graph variations to investigate these questions. Their correct answers and route comparisons are determined by a shortest-path solver, rather than by another language model.
+
+**1. Evaluate models on problems outside their training cases**
+
+We prepare two groups of evaluation tasks:
+
+- **G08 — Failure-focused evaluation:** Problems drawn from genuine Student failures that were not used to construct the paired training examples. It includes two 300-case evaluation sets.
+- **G09 — Broader evaluation:** Problems drawn from the larger original task collection, excluding the paired supervision cases. It provides evaluation sets containing 846 and 1,600 cases.
+
+These datasets let researchers compare performance on previously difficult problems and a broader range of shortest-path tasks. Training separation is based on case IDs; evaluation views can overlap and are not guaranteed to contain entirely different graph structures.
+
+**2. What happens when the cost of a connection changes?**
+
+Imagine a graph representing a network. A particular route is initially the shortest, but the cost of one connection changes. Should the model continue using the same route or choose another?
+
+To investigate this, we construct three versions of the same graph:
+
+- **Original:** The initial graph, with its original shortest route.
+- **Stay:** The weight of one edge changes, but the selected original route is still optimal.
+- **Switch:** The same edge's weight changes further, making the selected original route more expensive than a new shortest route.
+
+Together, these three versions form a **counterfactual evaluation triple**. The nodes, connections, source, and destination stay the same; only one edge weight changes.
+
+For example, in one released record, a direct connection between nodes 1 and 5 has a cost of 160 in Original. Its cost increases to 169 in Stay, where it remains optimal. When the cost reaches 171 in Switch, another route costing 170 becomes better.
+
+PathFACT provides **354 such graph triples**, derived from selected G09 tasks. Researchers can test whether a model independently identifies the correct route under each condition.
+
+**3. Can a model learn to prefer the better route?**
+
+Finding a shortest path independently is different from choosing between two candidate routes.
+
+For this purpose, we also construct **ranking comparisons** using the 200 G06 training cases. Each comparison considers two paths:
+
+- **Old:** A shortest route in the original graph.
+- **New:** An alternative route that becomes optimal after a suitable edge-weight change.
+
+The solver calculates their costs under the original and changed graphs, establishing which route should be preferred. Among the 200 training cases, **162** support a strict preference for Old in Original and New in Switch; **9** have equally good routes in Original but a strict preference for New in Switch; and **29** have no qualifying strict Switch comparison.
+
+These records support research on whether teaching a model to prefer better candidate paths also improves its ability to generate optimal paths independently.
+
+**4. How small a change can reverse the best route?**
+
+For the 162 strict ranking cases, PathFACT provides an additional **Boundary-Local** dataset. It identifies an edge weight at which the two candidate routes would have equal costs, then constructs graph variants immediately on opposite sides of that threshold.
+
+On one side, Old is better by one cost unit. On the other, New is better by one cost unit. This creates controlled examples for studying decisions near the point where the preferred route changes.
+
+**What the released data contain:** These derived datasets store graph variations, candidate paths, solver-calculated costs, and verified comparisons. They do **not** contain model-generated answers, learned preference scores, or claims that a model successfully adapted. Researchers can use the public CPU tools to inspect and verify the graph relationships, while new model inference and model-dependent preference scoring require their own model environments.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 24, "wrappingWidth": 440}}}%%
@@ -162,9 +216,35 @@ flowchart TB
 
 **Two different uses for changed graphs:** The 354 Original/Stay/Switch triples come from selected G09 cases and are used to test responses to changed tasks. The 200 G06 ranking-eligibility records instead describe whether the original and modified graphs support a strict Old/New route preference: **162** strict in both directions, **9** tied on Original but strict on Switch, and **29** with no qualifying strict Switch. The 162 Boundary-Local records support a separate, training-related analysis of small cost changes. The released Derived files contain graph-based labels, **not model outputs or learned preference scores**.
 
-### Step 3. Train models and evaluate their decisions
 
-Researchers can use the released resources to compare **answer-only supervision, ordinary Teacher reasoning, failure-guided correction, and ranking-based training**. Model inference, training, and candidate likelihood scoring run in the researcher's own model environment. After inference, the public CPU tools can score saved, extracted paths.
+### Step 3. Train Models and Evaluate What They Have Learned
+
+After preparing the training examples in Step 1 and the evaluation datasets in Step 2, we investigate a central question: **Does learning from real mistakes help a language model solve new shortest-path problems, or does it simply change how the model responds to examples it has already seen?**
+
+We compare several training methods and evaluate their behaviour using mathematically verified shortest-path tasks.
+
+**1. What do the different training methods teach?**
+
+We start with the same base model and investigate different forms of supervision:
+
+- **Base — No additional training.** The original model provides a reference for measuring the effects of fine-tuning.
+
+- **Vanilla-SFT — Learn from correct answers.** The model learns from graph problems paired with their correct shortest-path answers, without Teacher-generated reasoning.
+
+- **LIMO — Learn from correct reasoning.** The model learns from ordinary Teacher-generated reasoning that explains how to solve a shortest-path problem and provides the correct answer.
+
+- **ContrastiveLIMO — Learn from real mistakes.** The model learns from examples containing an actual Student reasoning failure and a Teacher response that addresses the mistake and provides a correct solution. Unlike LIMO, the Teacher's reasoning is explicitly conditioned on the Student's recorded error.
+
+The key comparison is whether **learning how to correct a real mistake** offers benefits beyond learning from correct answers or ordinary reasoning demonstrations.
+
+**Single-Ranking and Dual-Ranking** investigate a different idea: can teaching a model to prefer better candidate routes improve its ability to find shortest paths?
+
+Both methods retain LIMO-style supervised fine-tuning and introduce an additional ranking objective:
+
+- **Single-Ranking:** Encourages the model to prefer the new shortest route over the old route when a changed edge weight makes the new route better (Switch).
+- **Dual-Ranking:** Also encourages the reverse preference on the original graph when the old route is strictly better, alongside the Switch preference. When the original routes tie, only the applicable Switch ranking objective is used.
+
+These are separate training runs starting from the same base model, not additional fine-tuning of an already trained LIMO checkpoint.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 24, "wrappingWidth": 440}}}%%
@@ -231,15 +311,37 @@ flowchart TB
     class TRAIN,VAL,RANK,TESTS,CF,BOUND dataset
 ```
 
-**Three ways to evaluate a model:**
 
-1. **Generate an answer.** Give the model a new G08/G09 task, without the reference answer. Check whether its route is valid and shortest.
-2. **Solve a changed problem.** Ask the model to solve the Original, Stay, and Switch graphs independently. Compare how its answers change when an edge weight changes.
-3. **Score two supplied answers.** Give a ranking model a fixed Old/New candidate pair. Compare its answer-token likelihood preference with the true route-cost order. This is **not** the same as generating a path without candidates.
+**2. How do we find out what the models actually learned?**
 
-**Training methods:** Vanilla uses correct-answer-only targets; LIMO uses ordinary Teacher reasoning; ContrastiveLIMO uses failure-guided corrective reasoning. **Single- and Dual-Ranking are separate LIMO-based training runs**, not further fine-tuning of an existing LIMO checkpoint. Single adds Switch-answer preferences; Dual adds Original and Switch preferences when eligible. The completed experiments did not find a consistent gain in independent G08/G09 solving from the ranking losses. Boundary-Local has completed preference-related analyses, **not** a completed task-only G08/G09 result.
+We use three complementary evaluation approaches.
 
-**What the software does:** White boxes identify released data resources, while the training and generation actions require external model environments. The public CPU package supports the documented graph/solver operations, data processing, derived-resource handling, and **scoring of saved predictions**. It does not perform Student/Teacher inference, GPU training, new model generation, or model-dependent candidate-answer NLL scoring. Final-path verification does not certify every sentence of a reasoning trace.
+- **Test independent problem solving.** Give the model a shortest-path problem from G08 or G09, without showing the correct route or any candidate answers. The model must generate its own solution. We then use the solver to determine whether the resulting route is invalid, valid but more expensive than necessary, or optimal. This directly measures the model's ability to solve the task independently.
+
+- **Test responses to changing graphs.** Present the Original, Stay, and Switch versions of a graph as three separate shortest-path problems. The model must solve each version independently. We examine whether it continues to find an optimal route when the original best route remains valid (Stay) and when a different route becomes better (Switch). This tests the model's behaviour under controlled changes in edge costs.
+
+- **Test preferences between candidate routes.** Instead of asking the model to generate a route, evaluate how strongly it favours two predefined answers: Old and New. We calculate the model's likelihood score for each candidate answer under the relevant graph problem, then compare its preference with the solver-established route-cost ordering. This reveals whether the model assigns a stronger preference to the better candidate. **Preferring the correct answer when candidates are supplied is not the same as generating that answer independently.**
+
+For the main independent-solving evaluations, models receive only the graph task. **ContrastiveLIMO does not require a Student error trace at evaluation time**, even though those traces were used to construct its corrective training examples.
+
+**3. What have the completed experiments shown?**
+
+The completed investigation compares ordinary answer supervision, reasoning-based supervision, corrective supervision, and additional ranking objectives. It examines shortest-path correctness, improvements and regressions on individual problems, sensitivity to training settings, responses to changed edge weights, and computational costs.
+
+One important finding is that **better candidate-route preferences do not necessarily translate into better independent problem solving**. The completed Single- and Dual-Ranking experiments did not consistently improve task-only G08/G09 shortest-path performance over LIMO.
+
+The Boundary-Local resources support completed preference-related analyses near route-optimality changes. They do not establish a completed independent shortest-path generation result for Boundary-Local tasks.
+
+**4. What can researchers run with the public software?**
+
+The workflow diagrams distinguish released datasets from model-dependent operations. White double-bordered boxes represent released data resources.
+
+The public **CPU-only PathFACT package** supports documented graph generation and verification, dataset processing, construction of supported derived resources, and evaluation of previously saved model predictions.
+
+Researchers provide their own environments for Student and Teacher inference, fine-tuning, new model generation, and candidate-answer likelihood scoring. The CPU package does not perform these model-dependent operations.
+
+Finally, **a solver-verified optimal answer does not automatically mean that every sentence in the model's reasoning is correct**. PathFACT distinguishes final-answer verification from the additional reasoning checks recorded for some supervision examples.
+
 
 ## 3. What is included in v0.1?
 
