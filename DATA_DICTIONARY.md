@@ -1111,3 +1111,25 @@ from some rows, while nullability means it is present with JSON `null`;
 these distinctions are observed in G09 `view.source_difficulty` (omitted)
 and in ranking eligibility (nulls). No field meanings should be inferred
 solely from a key name where the code/provenance does not define them.
+
+## v0.2 Vanilla-SFT resources
+
+The v0.2 expansion adds two G06 answer-only prompt/completion JSONL files:
+
+- `training/answer_only_train_200_prompt_completion_v1.jsonl` (200 records)
+- `training/answer_only_loss_val_44_prompt_completion_v1.jsonl` (44 records)
+
+Each record has the same six-field prompt/completion structure as the G06
+Gold resources. `prompt` is the task-only shortest-path question. `completion`
+contains only the final answer in the form `Answer: [node, ...]`; it has no
+reasoning trace. `prompt_sha256` and `completion_sha256` are SHA-256 hashes of
+the corresponding exact UTF-8 strings. `production_case_id` identifies the
+case, and `condition` is `vanilla`. The case IDs, order, prompts, and answers
+are validated against frozen G06 Gold supervision. Train and LossVal case
+sets are disjoint.
+
+The public files are reconstructed from validated frozen G06 Gold records;
+they are not byte-identical to the historical Stage C files. Historical
+answer-only supervision exists for these splits, but no claim is made that a
+historical model checkpoint has been matched to an exact training-file
+SHA-256. See [Source Provenance](docs/SOURCE_PROVENANCE.md) for details.
