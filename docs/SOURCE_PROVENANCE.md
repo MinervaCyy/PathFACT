@@ -50,7 +50,8 @@ The other evaluation modules provide reusable CPU-only extraction and offline ev
 - G08/G09: historical answer extraction reproduced for all 10,338 records.
 - G08 Balanced-300 Base task-only: 42 valid predictions reproduced.
 - Historical provenance regression snapshot: 82 tests passed with historical references configured; zero failures and zero skipped tests. This predates the release-candidate builder tests and is not the current suite total.
-- Current release-preparation audit: 113 tests discovered, 103 passed and 10 frozen-source checks skipped because reference datasets were not configured. Seven require `PATHFACT_PIPELINE_REFERENCE`, two require `PATHFACT_G00_REFERENCE`, and one requires `PATHFACT_G06_REFERENCE`. These optional frozen datasets are not required for ordinary CPU-only use.
+- Earlier release-preparation audit (before Vanilla-SFT expansion): 113 tests discovered, 103 passed and 10 frozen-source checks skipped because reference datasets were not configured. Seven require `PATHFACT_PIPELINE_REFERENCE`, two require `PATHFACT_G00_REFERENCE`, and one requires `PATHFACT_G06_REFERENCE`. These optional frozen datasets are not required for ordinary CPU-only use.
+- Local CPU regression on 2026-11-12, following the Vanilla-SFT extension: 122 tests discovered, 112 passed, 10 frozen-reference tests skipped, and zero failures. The skipped checks do not constitute verification against the unavailable historical reference files.
 
 The historical reference datasets are not required for ordinary public CPU-only execution.
 
@@ -63,3 +64,69 @@ The historical reference datasets are not required for ordinary public CPU-only 
 - Historical technical and licensing records should be read in their dated context; they do not replace the current release scope stated in the Hugging Face Dataset Card.
 
 Source fingerprints and regression tests establish traceability and observed equivalence; they do not establish redistribution rights.
+
+## 4. Vanilla-SFT provenance
+
+### Historical research records
+
+The original internal Stage C Vanilla-SFT resources contain 200
+training records and 44 loss-validation records. They preserve
+answer-only prompt/completion content associated with the historical
+Vanilla-SFT research condition.
+
+The original files are:
+
+- `answer_only_train_200_prompt_completion_v1.jsonl`
+- `answer_only_loss_val_44_prompt_completion_v1.jsonl`
+
+A subsequent audit identified an internal checksum discrepancy:
+the `completion_sha256` fields retained hashes of earlier
+empty-think completions rather than the visible answer-only
+completion strings.
+
+The original research files remain unchanged. Their file-level
+SHA-256 values and their historical content must not be confused
+with the corrected public candidate files.
+
+### Reconstructed public Vanilla-SFT resources
+
+The CPU-only PathFACT builder derives Vanilla-SFT records from
+the frozen G06 Gold Train-200 and LossVal-44 resources.
+
+It preserves the Gold case IDs, record ordering and task-only
+prompts, while converting the final path to an answer-only
+completion of the form `Answer: [node, ...]`.
+
+The six-field prompt/completion records are regenerated with
+SHA-256 values calculated from their actual text.
+
+The expanded Core exporter validates Vanilla against Gold,
+including schema, record counts, case IDs, ordering, prompts,
+answers and hashes. It requires disjoint Train/LossVal case
+sets and copies the validated files byte-for-byte into the
+candidate, recording their hashes in the integrity manifest.
+
+This is a reconstruction from previously validated supervision,
+not an independent shortest-path solver run. The reconstructed
+files are not claimed to be byte-identical to the historical
+Stage C files.
+
+### Historical model-training evidence boundary
+
+The available historical records support the existence of the
+Vanilla-SFT experimental condition and its answer-only
+supervision. They do not establish a verified exact input-file
+SHA-256 mapping to a particular historical trained checkpoint.
+
+No such checkpoint-to-dataset-hash claim is made.
+
+### Release boundary
+
+The published PathFACT v0.1 suite contains 10 Core and 3 Derived
+JSONL resources. The optional expansion adds two Vanilla-SFT
+Core resources, yielding a proposed 12 Core plus 3 Derived suite.
+
+The expansion does not alter the existing published resources.
+The expanded export remains a local candidate until its actual
+release artifacts, provenance metadata and redistribution scope
+have been reviewed.

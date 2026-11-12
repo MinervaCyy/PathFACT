@@ -1153,6 +1153,220 @@ class TestPublicDataset(unittest.TestCase):
 
         self.assertEqual(sentinel.read_text(), "Do not overwrite")
 
+
+    def make_synthetic_vanilla(self):
+        """Create one-per-split synthetic Vanilla fixtures."""
+        import json
+
+        from pathfact.datasets.g06 import sft_record
+        from pathfact.datasets.vanilla import _convert_gold_records
+
+        def save_records(path, records):
+            path.write_text(
+                "".join(
+                    json.dumps(row, sort_keys=True) + chr(10)
+                    for row in records
+                ),
+                encoding="utf-8",
+            )
+
+        outputs = {}
+
+        for split in ("train", "loss_val"):
+            gold_path = self.g06_paths[f"gold_{split}"]
+            gold_rows = list(iter_jsonl(gold_path))
+
+            corrected_gold = [
+                sft_record(
+                    row["production_case_id"],
+                    "gold",
+                    row["prompt"],
+                    row["completion"] + chr(10) + "Answer: [0, 1]",
+                )
+                for row in gold_rows
+            ]
+
+            save_records(gold_path, corrected_gold)
+
+            vanilla_rows = _convert_gold_records(
+                gold_path,
+                expected_count=len(corrected_gold),
+            )
+
+            vanilla_path = self.root / f"vanilla_{split}.jsonl"
+            save_records(vanilla_path, vanilla_rows)
+            outputs[split] = vanilla_path
+
+        return outputs
+
+    def test_core_candidate_with_vanilla(self):
+        vanilla = self.make_synthetic_vanilla()
+        output = self.root / "core-with-vanilla"
+
+        arguments = self.core_arguments(output)
+        arguments.update({
+            "g06_vanilla_train_path": vanilla["train"],
+            "g06_vanilla_loss_val_path": vanilla["loss_val"],
+        })
+
+        export_core_release_candidate(**arguments)
+
+        self.assertEqual(
+            verify_release_manifest(output),
+            {
+                "files_verified": 12,
+                "status": "PASS",
+                "release_status": "draft_not_approved",
+            },
+        )
+
+        for split, filename in (
+            (
+                "train",
+                "answer_only_train_200_prompt_completion_v1.jsonl",
+            ),
+            (
+                "loss_val",
+                "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+            ),
+        ):
+            exported = output / "training" / filename
+
+            self.assertTrue(exported.is_file())
+            self.assertEqual(
+                exported.read_bytes(),
+                vanilla[split].read_bytes(),
+            )
+
+        summary = json.loads(
+            (output / "metadata/summary.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertEqual(
+            summary["g06"]["vanilla"]["status"],
+            "PASS",
+        )
+
+    def test_core_candidate_rejects_bad_vanilla_hash(self):
+        vanilla = self.make_synthetic_vanilla()
+
+        records = list(iter_jsonl(vanilla["train"]))
+        records[0]["completion_sha256"] = "0" * 64
+
+        from pathfact.datasets.g06 import write_jsonl
+        write_jsonl(vanilla["train"], records)
+
+        output = self.root / "invalid-vanilla"
+
+        arguments = self.core_arguments(output)
+        arguments.update({
+            "g06_vanilla_train_path": vanilla["train"],
+            "g06_vanilla_loss_val_path": vanilla["loss_val"],
+        })
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "completion_sha256",
+        ):
+            export_core_release_candidate(**arguments)
+
+        self.assertFalse(output.exists())
+
+    def test_core_candidate_requires_both_vanilla_splits(self):
+        vanilla = self.make_synthetic_vanilla()
+
+        for name, extra in (
+            (
+                "train_only",
+                {"g06_vanilla_train_path": vanilla["train"]},
+            ),
+            (
+                "lossval_only",
+                {"g06_vanilla_loss_val_path": vanilla["loss_val"]},
+            ),
+        ):
+            with self.subTest(name=name):
+                output = self.root / name
+                arguments = self.core_arguments(output)
+                arguments.update(extra)
+
+                with self.assertRaisesRegex(
+                    DatasetFormatError,
+                    "Vanilla Train and LossVal",
+                ):
+                    export_core_release_candidate(**arguments)
+
+                self.assertFalse(output.exists())
+
+    def test_cli_core_candidate_with_vanilla(self):
+        """CLI exports all 12 Core resources with Vanilla inputs."""
+        import subprocess
+
+        vanilla = self.make_synthetic_vanilla()
+        output = self.root / "cli-core-with-vanilla"
+
+        arguments = self.core_arguments(output)
+        arguments.update({
+            "g06_vanilla_train_path": vanilla["train"],
+            "g06_vanilla_loss_val_path": vanilla["loss_val"],
+        })
+
+        command = [
+            sys.executable,
+            "-m",
+            "pathfact.cli",
+            "dataset",
+            "export-core-candidate",
+        ]
+
+        for key, value in arguments.items():
+            flag = "--" + key.removesuffix("_path").replace("_", "-")
+            command.extend([flag, str(value)])
+
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            completed.stderr,
+        )
+
+        self.assertEqual(
+            verify_release_manifest(output)["files_verified"],
+            12,
+        )
+
+        self.assertIn(
+            f"vanilla_train: {output / 'training' / 'answer_only_train_200_prompt_completion_v1.jsonl'}",
+            completed.stdout,
+        )
+        self.assertIn(
+            f"vanilla_loss_val: {output / 'training' / 'answer_only_loss_val_44_prompt_completion_v1.jsonl'}",
+            completed.stdout,
+        )
+
+        for split, filename in (
+            (
+                "train",
+                "answer_only_train_200_prompt_completion_v1.jsonl",
+            ),
+            (
+                "loss_val",
+                "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+            ),
+        ):
+            self.assertEqual(
+                (output / "training" / filename).read_bytes(),
+                vanilla[split].read_bytes(),
+            )
+
     def test_cli_core_candidate(self):
         output = self.root / "cli-core"
         command = [

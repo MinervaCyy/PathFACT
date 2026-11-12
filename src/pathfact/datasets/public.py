@@ -1027,6 +1027,8 @@ def export_core_release_candidate(
     expected_g08_balanced_g09_train_dist_overlap=221,
     expected_g08_train_dist_g09_balanced_overlap=110,
     expected_g08_train_dist_g09_train_dist_overlap=265,
+    g06_vanilla_train_path=None,
+    g06_vanilla_loss_val_path=None,
 ):
     """Build a local-only G00/G05/G06/G08/G09 release candidate.
 
@@ -1059,6 +1061,18 @@ def export_core_release_candidate(
     if not isinstance(dataset_version, str) or not dataset_version.strip():
         raise DatasetFormatError("Dataset version is required")
 
+    with_vanilla = (
+        g06_vanilla_train_path is not None
+        and g06_vanilla_loss_val_path is not None
+    )
+
+    if (g06_vanilla_train_path is None) != (
+        g06_vanilla_loss_val_path is None
+    ):
+        raise DatasetFormatError(
+            "Vanilla Train and LossVal must be supplied together"
+        )
+
     input_paths = {
         "g00": Path(g00_path),
         "g02": Path(g02_path),
@@ -1076,6 +1090,12 @@ def export_core_release_candidate(
         "g09_balanced": Path(g09_balanced_path),
         "g09_train_dist": Path(g09_train_dist_path),
     }
+    if with_vanilla:
+        input_paths.update({
+            "g06_vanilla_train": Path(g06_vanilla_train_path),
+            "g06_vanilla_loss_val": Path(g06_vanilla_loss_val_path),
+        })
+
     input_sha256 = {
         name: _sha256_file(path)
         for name, path in input_paths.items()
@@ -1122,6 +1142,25 @@ def export_core_release_candidate(
         expected_loss_val_records=expected_loss_val_records,
         expected_case_ids=g05_ids,
     )
+    if with_vanilla:
+        from pathfact.datasets.vanilla import (
+            validate_vanilla_release_files,
+        )
+
+        vanilla_report = validate_vanilla_release_files(
+            vanilla_train_path=g06_vanilla_train_path,
+            vanilla_loss_val_path=g06_vanilla_loss_val_path,
+            gold_train_path=g06_gold_train_path,
+            gold_loss_val_path=g06_gold_loss_val_path,
+            expected_train_records=expected_train_records,
+            expected_loss_val_records=expected_loss_val_records,
+        )
+
+        g06_report = {
+            **g06_report,
+            "vanilla": vanilla_report,
+        }
+
     g06_case_ids = set()
 
     for path in (g06_gold_train_path, g06_gold_loss_val_path):
@@ -1222,10 +1261,26 @@ def export_core_release_candidate(
                 g06_contrastive_loss_val_path
             ),
         }
+        if with_vanilla:
+            g06_sources.update({
+                "vanilla_train": Path(g06_vanilla_train_path),
+                "vanilla_loss_val": Path(g06_vanilla_loss_val_path),
+            })
+
+        release_filenames = {
+            **G06_RELEASE_FILES,
+            "vanilla_train": (
+                "answer_only_train_200_prompt_completion_v1.jsonl"
+            ),
+            "vanilla_loss_val": (
+                "answer_only_loss_val_44_prompt_completion_v1.jsonl"
+            ),
+        }
+
         training_paths = {}
 
         for name, source in g06_sources.items():
-            destination = training_dir / G06_RELEASE_FILES[name]
+            destination = training_dir / release_filenames[name]
             shutil.copyfile(source, destination)
 
             if _sha256_file(destination) != input_sha256[f"g06_{name}"]:
@@ -1344,8 +1399,8 @@ def export_core_release_candidate(
         "tasks": output / "tasks" / "g00_tasks.jsonl",
         "paired": output / "paired" / "g05_paired.jsonl",
         **{
-            name: output / "training" / filename
-            for name, filename in G06_RELEASE_FILES.items()
+            name: output / destination.relative_to(staging)
+            for name, destination in training_paths.items()
         },
         **{
             name: output / "evaluation" / filename

@@ -51,7 +51,7 @@ The destination parent must exist and the destination itself must not exist.
 The builder stages its output before renaming it into place and does not
 overwrite an existing directory.
 
-## Candidate layout
+## Candidate layout (10-Core compatible mode)
 
     manifest.json
     metadata/summary.json
@@ -69,6 +69,73 @@ overwrite an existing directory.
 `metadata/summary.json` is marked `local_candidate_not_approved` with a null
 licence. Manifest v0.1 remains `draft_not_approved` with a null licence.
 Neither status authorizes redistribution.
+
+## Optional Vanilla-SFT expansion (12-Core candidate)
+
+The command and layout above remain supported without modification. They
+produce the original 10-Core candidate, containing four G06 training files.
+
+For an expanded candidate, provide both additional G06 inputs:
+
+    --g06-vanilla-train answer_only_train_200_prompt_completion_v1.jsonl
+    --g06-vanilla-loss-val answer_only_loss_val_44_prompt_completion_v1.jsonl
+
+Both options must be supplied together. The expanded candidate contains
+12 Core JSONL resources, adding these files under `training/`:
+
+    training/answer_only_train_200_prompt_completion_v1.jsonl
+    training/answer_only_loss_val_44_prompt_completion_v1.jsonl
+
+The three Derived resources are built separately. Together, the proposed
+expanded suite would contain 12 Core plus 3 Derived JSONL resources.
+This expansion does not modify the already published v0.1 resources.
+
+### Vanilla-SFT materialisation
+
+Vanilla-SFT uses the same frozen G06 Gold source problems and task-only
+prompts as the ordinary Teacher supervision. Its target contains only the
+final shortest-path answer, in the form `Answer: [node, ...]`, without a
+reasoning trace.
+
+Generate the release-ready Vanilla files from frozen G06 Gold inputs:
+
+    pathfact dataset materialize-vanilla       --gold-train gold_train_200_prompt_completion_v1.jsonl       --gold-loss-val gold_loss_val_44_prompt_completion_v1.jsonl       --output-dir vanilla_g06
+
+The operation requires 200 Train records and 44 LossVal records. It
+recomputes the completion hashes from the actual answer-only text.
+
+The expanded Core exporter validates Vanilla against the Gold records,
+including exact field schema, case IDs and ordering, prompts, final
+answers, internal hashes and Train/LossVal disjointness. It then copies
+the validated Vanilla files byte-for-byte, verifies their file hashes
+and includes them in the release manifest.
+
+The Gold records originate from the validated G06 workflow. Vanilla
+materialisation does not independently run a shortest-path solver.
+
+### Historical Vanilla provenance
+
+The original internal Stage C Vanilla files contain genuine historical
+answer-only prompt/completion records, but their `completion_sha256`
+fields retain hashes associated with earlier empty-think completions.
+Those hashes do not match the visible answer-only completion strings.
+
+The original research files must remain unchanged. For the expanded
+public candidate, regenerate Vanilla from the frozen Gold G06 inputs
+and use the corrected, internally consistent files.
+
+This reconstruction does not by itself establish the exact input-file
+hash used to train a historical Vanilla model checkpoint. No such
+checkpoint-to-file identification is claimed here.
+
+### Expanded export integrity
+
+With both Vanilla inputs, the manifest verifies 12 Core JSONL files
+rather than 10. `metadata/summary.json` includes a Vanilla validation
+report under `g06.vanilla`.
+
+Both export modes remain local-candidate operations. Their manifests
+and summaries do not constitute redistribution approval.
 
 ## Validation and preservation
 

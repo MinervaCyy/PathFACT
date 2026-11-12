@@ -121,6 +121,32 @@ def main(argv=None) -> int:
     )
 
 
+    vanilla_parser = dataset_commands.add_parser(
+        "materialize-vanilla",
+        help="Materialize answer-only Vanilla-SFT datasets",
+    )
+
+    vanilla_parser.add_argument(
+        "--gold-train",
+        type=Path,
+        required=True,
+        help="Validated G06 Gold Train-200 JSONL",
+    )
+
+    vanilla_parser.add_argument(
+        "--gold-loss-val",
+        type=Path,
+        required=True,
+        help="Validated G06 Gold LossVal-44 JSONL",
+    )
+
+    vanilla_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="New output directory; must not already exist",
+    )
+
     export_parser = dataset_commands.add_parser(
         "export-public",
         help="Create a local candidate dataset; not approved for release",
@@ -187,6 +213,20 @@ def main(argv=None) -> int:
         core_export_parser.add_argument(
             flag, type=Path, required=True, help=description
         )
+
+    core_export_parser.add_argument(
+        "--g06-vanilla-train",
+        type=Path,
+        default=None,
+        help="Optional validated Vanilla-SFT Train-200 JSONL",
+    )
+
+    core_export_parser.add_argument(
+        "--g06-vanilla-loss-val",
+        type=Path,
+        default=None,
+        help="Optional validated Vanilla-SFT LossVal-44 JSONL",
+    )
 
     core_export_parser.add_argument(
         "--output-dir",
@@ -512,6 +552,25 @@ def main(argv=None) -> int:
         return 0
 
 
+    if args.dataset_command == "materialize-vanilla":
+        from pathfact.datasets.vanilla import materialize_vanilla_sft
+
+        try:
+            outputs = materialize_vanilla_sft(
+                gold_train_path=args.gold_train,
+                gold_loss_val_path=args.gold_loss_val,
+                output_dir=args.output_dir,
+            )
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            vanilla_parser.error(str(exc))
+
+        print("Vanilla SFT materialisation completed.")
+
+        for name, path in outputs.items():
+            print(f"{name}: {path}")
+
+        return 0
+
     if args.dataset_command == "export-public":
         from pathfact.datasets.public import export_public_pairs
 
@@ -556,6 +615,10 @@ def main(argv=None) -> int:
                 g06_gold_loss_val_path=args.g06_gold_loss_val,
                 g06_contrastive_loss_val_path=(
                     args.g06_contrastive_loss_val
+                ),
+                g06_vanilla_train_path=args.g06_vanilla_train,
+                g06_vanilla_loss_val_path=(
+                    args.g06_vanilla_loss_val
                 ),
                 g08_balanced_path=args.g08_balanced,
                 g08_train_dist_path=args.g08_train_dist,
