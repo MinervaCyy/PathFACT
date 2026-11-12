@@ -10,7 +10,7 @@ corrections can be used for supervision. Its released resources include graph
 tasks, selected Student failures paired with Teacher targets, frozen training
 examples, evaluation views, and derived graph resources.
 
-PathFACT is the overall project. ContrastiveLIMO names one historical
+PathFACT is the overall project. ContrastiveLIMO names one
 failure-conditioned supervised fine-tuning method; it does not describe every
 PathFACT resource. The CPU software does not provide model inference, GPU
 training, or model-dependent answer-likelihood scoring.
@@ -52,13 +52,15 @@ for field definitions and validation details.
   graph tasks and reference labels, with no Student responses.
 - **Failure-conditioned supervision:** `paired/g05_paired.jsonl` links
   selected Student failures with Gold and Contrastive Teacher targets.
-- **Frozen supervised fine-tuning examples:** the six `training/` G06 files
-  cover three methods. Vanilla-SFT uses the historical `answer_only` filename
-  prefix and the `vanilla` record condition for final-answer-only targets;
-  LIMO uses `gold` for ordinary Teacher reasoning; ContrastiveLIMO uses
-  `contrastive` for failure-conditioned corrective Teacher reasoning. Each
-  method has Train-200 and LossVal-44 files. These are small task-specific
-  resources, not a general-purpose corpus.
+- **Frozen supervised fine-tuning examples:** the six v0.3 `training/` G06
+  files cover three methods. Vanilla-SFT uses `vanilla_sft_*` paths and the
+  `vanilla` record condition for final-answer-only targets; LIMO uses
+  `limo_*` paths and `gold` for ordinary Teacher reasoning; ContrastiveLIMO
+  uses `contrastive_limo_*` paths and `contrastive` for failure-conditioned
+  corrective Teacher reasoning. Each method has Train-200 and LossVal-44
+  files. These are small task-specific resources, not a general-purpose
+  corpus. The `pathfact-v0.1` and `pathfact-v0.2` Hub tags preserve earlier
+  filenames.
 - **Completed evaluation views:** the four G08/G09 files in `evaluation/`
   contain model inputs and reference answers. Keep `reference` out of the model
   input. The two G09 views overlap, so they are not independent case-level
@@ -71,7 +73,7 @@ for field definitions and validation details.
   describe geometric path-cost comparisons. They are not model-response
   preferences or learned preference scores.
 
-The [Dataset Map](DATASET_MAP.md) lists all 15 v0.2 resources, counts, and
+The [Dataset Map](DATASET_MAP.md) lists all 15 v0.3 resources, counts, and
 intended uses. Its overlap section is the reference for detailed split
 relationships.
 

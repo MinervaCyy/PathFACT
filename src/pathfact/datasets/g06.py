@@ -120,11 +120,14 @@ def materialize_g06(
     train_quotas=None,
     lossval_quotas=None,
     output_profile="frozen_g06",
+    naming_mode="method",
 ):
     """Construct paired SFT records from verified upstream data.
 
     The default settings reproduce the historical G06 split.
-    Input files are read-only; output_dir must not already exist.
+    Input files are read-only; output_dir must not already exist. The
+    default frozen filenames use current method names; select
+    naming_mode="legacy" to reproduce the pre-v0.3 names.
 
     Returns a dictionary mapping output names to paths.
     """
@@ -157,6 +160,9 @@ def materialize_g06(
 
     if output_profile not in ("frozen_g06", "generic"):
         raise ValueError("Unknown output profile")
+
+    if naming_mode not in ("method", "legacy"):
+        raise ValueError("Unknown G06 filename naming mode")
 
     if output_profile == "frozen_g06" and (
         namespace != FROZEN_NAMESPACE
@@ -339,18 +345,30 @@ def materialize_g06(
 
     filenames = {
         "gold_train": (
-            "gold_train_200_prompt_completion_v1.jsonl"
+            "limo_train_200_prompt_completion_v1.jsonl"
         ),
         "contrastive_train": (
-            "contrastive_train_200_prompt_completion_v1.jsonl"
+            "contrastive_limo_train_200_prompt_completion_v1.jsonl"
         ),
         "gold_loss_val": (
-            "gold_loss_val_44_prompt_completion_v1.jsonl"
+            "limo_loss_val_44_prompt_completion_v1.jsonl"
         ),
         "contrastive_loss_val": (
-            "contrastive_loss_val_44_prompt_completion_v1.jsonl"
+            "contrastive_limo_loss_val_44_prompt_completion_v1.jsonl"
         ),
     }
+
+    if naming_mode == "legacy":
+        filenames = {
+            "gold_train": "gold_train_200_prompt_completion_v1.jsonl",
+            "contrastive_train": (
+                "contrastive_train_200_prompt_completion_v1.jsonl"
+            ),
+            "gold_loss_val": "gold_loss_val_44_prompt_completion_v1.jsonl",
+            "contrastive_loss_val": (
+                "contrastive_loss_val_44_prompt_completion_v1.jsonl"
+            ),
+        }
 
     if output_profile == "generic":
         filenames = {

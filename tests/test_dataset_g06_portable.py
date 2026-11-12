@@ -8,6 +8,9 @@ from pathlib import Path
 
 from pathfact.datasets import iter_jsonl
 from pathfact.datasets.g06 import (
+    FROZEN_LOSSVAL_QUOTAS,
+    FROZEN_NAMESPACE,
+    FROZEN_TRAIN_QUOTAS,
     materialize_g06,
     materialize_paired_sft,
 )
@@ -214,6 +217,7 @@ class TestPortableG06(unittest.TestCase):
                         record["completion"].startswith("<think>\n")
                     )
 
+
                     hops = dict(self.cases)[pid]
                     expected_path = list(range(hops + 1))
 
@@ -247,6 +251,99 @@ class TestPortableG06(unittest.TestCase):
             train_ids,
             {expected_easy_train, "PR00003"},
         )
+
+    def test_frozen_method_and_legacy_filename_modes(self):
+        g00 = []
+        g05 = []
+        g04b = []
+        prompts = []
+        index = 0
+        for tier, hops in (("Easy", 2), ("Medium", 4), ("Hard", 6)):
+            count = (
+                FROZEN_TRAIN_QUOTAS[tier]
+                + FROZEN_LOSSVAL_QUOTAS[tier]
+            )
+            for _ in range(count):
+                index += 1
+                pid = f"PR{index:05d}"
+                task = f"Shortest-path task for {pid}"
+                wrong = f"Incorrect Student reasoning {pid}"
+                g00.append({
+                    "production_case_id": pid,
+                    "gold_path_hops": hops,
+                    "ground_truth_shortest_path": list(range(hops + 1)),
+                })
+                g05.append({
+                    "production_case_id": pid,
+                    "joint_valid": True,
+                    "canonical_wrong_reasoning_trace": wrong,
+                    "gold_target": {
+                        "teacher_reasoning_trace": f"Gold {pid}",
+                    },
+                    "contrastive_target": {
+                        "teacher_reasoning_trace": f"Corrective {pid}",
+                    },
+                })
+                g04b.append({
+                    "production_case_id": pid,
+                    "canonical_teacher_record": {
+                        "messages": [{
+                            "role": "user",
+                            "content": task + "\n" + wrong,
+                        }],
+                    },
+                })
+                prompts.append({
+                    "production_case_id": pid,
+                    "messages": [{"role": "user", "content": task}],
+                })
+
+        paths = {}
+        for name, records in (
+            ("g00", g00), ("g05", g05),
+            ("g04b", g04b), ("prompts", prompts),
+        ):
+            path = self.root / f"frozen_{name}.jsonl"
+            self.write_jsonl(path, records)
+            paths[name] = path
+
+        common = {
+            "g00_path": paths["g00"],
+            "g05_path": paths["g05"],
+            "g04b_path": paths["g04b"],
+            "task_prompt_paths": [paths["prompts"]],
+        }
+        method = materialize_g06(
+            **common,
+            output_dir=self.root / "frozen_method",
+            namespace=FROZEN_NAMESPACE,
+        )
+        self.assertEqual(
+            {name: path.name for name, path in method.items() if name.endswith(("train", "loss_val"))},
+            {
+                "gold_train": "limo_train_200_prompt_completion_v1.jsonl",
+                "contrastive_train": "contrastive_limo_train_200_prompt_completion_v1.jsonl",
+                "gold_loss_val": "limo_loss_val_44_prompt_completion_v1.jsonl",
+                "contrastive_loss_val": "contrastive_limo_loss_val_44_prompt_completion_v1.jsonl",
+            },
+        )
+
+        legacy = materialize_g06(
+            **common,
+            output_dir=self.root / "frozen_legacy",
+            namespace=FROZEN_NAMESPACE,
+            naming_mode="legacy",
+        )
+        self.assertEqual(
+            {name: path.name for name, path in legacy.items() if name.endswith(("train", "loss_val"))},
+            {
+                "gold_train": "gold_train_200_prompt_completion_v1.jsonl",
+                "contrastive_train": "contrastive_train_200_prompt_completion_v1.jsonl",
+                "gold_loss_val": "gold_loss_val_44_prompt_completion_v1.jsonl",
+                "contrastive_loss_val": "contrastive_loss_val_44_prompt_completion_v1.jsonl",
+            },
+        )
+
 
     def test_rejects_missing_student_trace(self):
         records = list(iter_jsonl(self.paths["g04b"]))

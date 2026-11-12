@@ -61,14 +61,17 @@ class TestVanillaCLI(unittest.TestCase):
             check=False,
         )
 
-    def cli_arguments(self):
-        return [
+    def cli_arguments(self, naming_mode=None):
+        arguments = [
             "dataset",
             "materialize-vanilla",
             "--gold-train", str(self.gold_train),
             "--gold-loss-val", str(self.gold_loss_val),
             "--output-dir", str(self.output),
         ]
+        if naming_mode is not None:
+            arguments.extend(["--naming-mode", naming_mode])
+        return arguments
 
     def test_materialize_vanilla_cli(self):
         result = self.run_cli(self.cli_arguments())
@@ -82,8 +85,8 @@ class TestVanillaCLI(unittest.TestCase):
         )
 
         for filename, count in (
-            ("answer_only_train_200_prompt_completion_v1.jsonl", 200),
-            ("answer_only_loss_val_44_prompt_completion_v1.jsonl", 44),
+            ("vanilla_sft_train_200_prompt_completion_v1.jsonl", 200),
+            ("vanilla_sft_loss_val_44_prompt_completion_v1.jsonl", 44),
         ):
             path = self.output / filename
             self.assertTrue(path.is_file())
@@ -112,6 +115,16 @@ class TestVanillaCLI(unittest.TestCase):
                         record[f"{field}_sha256"],
                         sha256_text(record[field]),
                     )
+
+    def test_legacy_naming_mode(self):
+        result = self.run_cli(self.cli_arguments("legacy"))
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertTrue(
+            (self.output / "answer_only_train_200_prompt_completion_v1.jsonl").is_file()
+        )
+        self.assertTrue(
+            (self.output / "answer_only_loss_val_44_prompt_completion_v1.jsonl").is_file()
+        )
 
     def test_existing_output_is_rejected(self):
         first = self.run_cli(self.cli_arguments())

@@ -287,7 +287,18 @@ G06_FIELDS = (
     "completion", "completion_sha256",
 )
 
-G06_RELEASE_FILES = {
+G06_METHOD_RELEASE_FILES = {
+    "gold_train": "limo_train_200_prompt_completion_v1.jsonl",
+    "contrastive_train": (
+        "contrastive_limo_train_200_prompt_completion_v1.jsonl"
+    ),
+    "gold_loss_val": "limo_loss_val_44_prompt_completion_v1.jsonl",
+    "contrastive_loss_val": (
+        "contrastive_limo_loss_val_44_prompt_completion_v1.jsonl"
+    ),
+}
+
+G06_LEGACY_RELEASE_FILES = {
     "gold_train": "gold_train_200_prompt_completion_v1.jsonl",
     "contrastive_train": (
         "contrastive_train_200_prompt_completion_v1.jsonl"
@@ -295,6 +306,22 @@ G06_RELEASE_FILES = {
     "gold_loss_val": "gold_loss_val_44_prompt_completion_v1.jsonl",
     "contrastive_loss_val": (
         "contrastive_loss_val_44_prompt_completion_v1.jsonl"
+    ),
+}
+
+G06_RELEASE_FILES = G06_METHOD_RELEASE_FILES
+
+VANILLA_METHOD_RELEASE_FILES = {
+    "vanilla_train": "vanilla_sft_train_200_prompt_completion_v1.jsonl",
+    "vanilla_loss_val": (
+        "vanilla_sft_loss_val_44_prompt_completion_v1.jsonl"
+    ),
+}
+
+VANILLA_LEGACY_RELEASE_FILES = {
+    "vanilla_train": "answer_only_train_200_prompt_completion_v1.jsonl",
+    "vanilla_loss_val": (
+        "answer_only_loss_val_44_prompt_completion_v1.jsonl"
     ),
 }
 
@@ -1029,13 +1056,15 @@ def export_core_release_candidate(
     expected_g08_train_dist_g09_train_dist_overlap=265,
     g06_vanilla_train_path=None,
     g06_vanilla_loss_val_path=None,
+    naming_mode="method",
 ):
     """Build a local-only G00/G05/G06/G08/G09 release candidate.
 
     G00 and G05 are exported through explicit public field allowlists.
-    The four validated G06 files are copied byte-for-byte. Frozen inputs
-    are never modified. G08/G09 are normalized through explicit
-    evaluation allowlists. The destination must not already exist.
+    The validated G06 files are copied byte-for-byte. Frozen inputs are
+    never modified. G08/G09 are normalized through explicit evaluation
+    allowlists. The destination must not already exist. `naming_mode`
+    selects v0.3 method-based paths or the historical v0.1/v0.2 paths.
     """
     import json
     import os
@@ -1060,6 +1089,9 @@ def export_core_release_candidate(
 
     if not isinstance(dataset_version, str) or not dataset_version.strip():
         raise DatasetFormatError("Dataset version is required")
+
+    if naming_mode not in ("method", "legacy"):
+        raise DatasetFormatError("Unknown dataset filename naming mode")
 
     with_vanilla = (
         g06_vanilla_train_path is not None
@@ -1267,15 +1299,17 @@ def export_core_release_candidate(
                 "vanilla_loss_val": Path(g06_vanilla_loss_val_path),
             })
 
-        release_filenames = {
-            **G06_RELEASE_FILES,
-            "vanilla_train": (
-                "answer_only_train_200_prompt_completion_v1.jsonl"
-            ),
-            "vanilla_loss_val": (
-                "answer_only_loss_val_44_prompt_completion_v1.jsonl"
-            ),
-        }
+        release_filenames = (
+            {
+                **G06_METHOD_RELEASE_FILES,
+                **VANILLA_METHOD_RELEASE_FILES,
+            }
+            if naming_mode == "method"
+            else {
+                **G06_LEGACY_RELEASE_FILES,
+                **VANILLA_LEGACY_RELEASE_FILES,
+            }
+        )
 
         training_paths = {}
 

@@ -147,6 +147,13 @@ def main(argv=None) -> int:
         help="New output directory; must not already exist",
     )
 
+    vanilla_parser.add_argument(
+        "--naming-mode",
+        choices=("method", "legacy"),
+        default="method",
+        help="Use v0.3 method filenames or historical answer_only filenames",
+    )
+
     export_parser = dataset_commands.add_parser(
         "export-public",
         help="Create a local candidate dataset; not approved for release",
@@ -238,6 +245,13 @@ def main(argv=None) -> int:
         "--dataset-version",
         required=True,
         help="Local candidate version identifier",
+    )
+
+    core_export_parser.add_argument(
+        "--naming-mode",
+        choices=("method", "legacy"),
+        default="method",
+        help="Use v0.3 method filenames or historical v0.1/v0.2 filenames",
     )
 
     for flag, default, description in (
@@ -560,6 +574,7 @@ def main(argv=None) -> int:
                 gold_train_path=args.gold_train,
                 gold_loss_val_path=args.gold_loss_val,
                 output_dir=args.output_dir,
+                naming_mode=args.naming_mode,
             )
         except (OSError, ValueError, KeyError, TypeError) as exc:
             vanilla_parser.error(str(exc))
@@ -626,6 +641,7 @@ def main(argv=None) -> int:
                 g09_train_dist_path=args.g09_train_dist,
                 output_dir=args.output_dir,
                 dataset_version=args.dataset_version,
+                naming_mode=args.naming_mode,
                 expected_g00_records=args.expected_g00_records,
                 expected_paired_records=args.expected_paired_records,
                 expected_train_records=args.expected_train_records,

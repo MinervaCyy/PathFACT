@@ -848,6 +848,9 @@ class TestPublicDataset(unittest.TestCase):
             **self.core_arguments(output)
         )
 
+        for name, filename in G06_RELEASE_FILES.items():
+            self.assertEqual(outputs[name].name, filename)
+
         self.assertEqual(
             verify_release_manifest(output),
             {
@@ -1223,11 +1226,11 @@ class TestPublicDataset(unittest.TestCase):
         for split, filename in (
             (
                 "train",
-                "answer_only_train_200_prompt_completion_v1.jsonl",
+                "vanilla_sft_train_200_prompt_completion_v1.jsonl",
             ),
             (
                 "loss_val",
-                "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+                "vanilla_sft_loss_val_44_prompt_completion_v1.jsonl",
             ),
         ):
             exported = output / "training" / filename
@@ -1247,6 +1250,40 @@ class TestPublicDataset(unittest.TestCase):
         self.assertEqual(
             summary["g06"]["vanilla"]["status"],
             "PASS",
+        )
+
+    def test_core_candidate_with_vanilla_legacy_names(self):
+        vanilla = self.make_synthetic_vanilla()
+        output = self.root / "core-with-vanilla-legacy"
+        arguments = self.core_arguments(output)
+        arguments.update({
+            "g06_vanilla_train_path": vanilla["train"],
+            "g06_vanilla_loss_val_path": vanilla["loss_val"],
+            "naming_mode": "legacy",
+        })
+
+        outputs = export_core_release_candidate(**arguments)
+        legacy_names = {
+            "gold_train": "gold_train_200_prompt_completion_v1.jsonl",
+            "contrastive_train": "contrastive_train_200_prompt_completion_v1.jsonl",
+            "gold_loss_val": "gold_loss_val_44_prompt_completion_v1.jsonl",
+            "contrastive_loss_val": "contrastive_loss_val_44_prompt_completion_v1.jsonl",
+            "vanilla_train": "answer_only_train_200_prompt_completion_v1.jsonl",
+            "vanilla_loss_val": "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+        }
+        for name, filename in legacy_names.items():
+            target = output / "training" / filename
+            self.assertTrue(target.is_file())
+            if name.startswith("vanilla"):
+                source = vanilla[name.removeprefix("vanilla_")]
+            else:
+                source = self.g06_paths[name]
+            self.assertEqual(target.read_bytes(), source.read_bytes())
+            self.assertEqual(outputs[name], target)
+
+        self.assertEqual(
+            verify_release_manifest(output)["files_verified"],
+            12,
         )
 
     def test_core_candidate_rejects_bad_vanilla_hash(self):
@@ -1301,7 +1338,7 @@ class TestPublicDataset(unittest.TestCase):
                 self.assertFalse(output.exists())
 
     def test_cli_core_candidate_with_vanilla(self):
-        """CLI exports all 12 Core resources with Vanilla inputs."""
+        """CLI exports method names and supports legacy filenames."""
         import subprocess
 
         vanilla = self.make_synthetic_vanilla()
@@ -1344,27 +1381,66 @@ class TestPublicDataset(unittest.TestCase):
         )
 
         self.assertIn(
-            f"vanilla_train: {output / 'training' / 'answer_only_train_200_prompt_completion_v1.jsonl'}",
+            f"vanilla_train: {output / 'training' / 'vanilla_sft_train_200_prompt_completion_v1.jsonl'}",
             completed.stdout,
         )
         self.assertIn(
-            f"vanilla_loss_val: {output / 'training' / 'answer_only_loss_val_44_prompt_completion_v1.jsonl'}",
+            f"vanilla_loss_val: {output / 'training' / 'vanilla_sft_loss_val_44_prompt_completion_v1.jsonl'}",
             completed.stdout,
         )
 
         for split, filename in (
             (
                 "train",
-                "answer_only_train_200_prompt_completion_v1.jsonl",
+                "vanilla_sft_train_200_prompt_completion_v1.jsonl",
             ),
             (
                 "loss_val",
-                "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+                "vanilla_sft_loss_val_44_prompt_completion_v1.jsonl",
             ),
         ):
             self.assertEqual(
                 (output / "training" / filename).read_bytes(),
                 vanilla[split].read_bytes(),
+            )
+
+        legacy_output = self.root / "cli-core-with-vanilla-legacy"
+        legacy_arguments = self.core_arguments(legacy_output)
+        legacy_arguments.update({
+            "g06_vanilla_train_path": vanilla["train"],
+            "g06_vanilla_loss_val_path": vanilla["loss_val"],
+        })
+        legacy_command = [
+            sys.executable, "-m", "pathfact.cli",
+            "dataset", "export-core-candidate",
+        ]
+        for key, value in legacy_arguments.items():
+            flag = "--" + key.removesuffix("_path").replace("_", "-")
+            legacy_command.extend([flag, str(value)])
+        legacy_command.extend(["--naming-mode", "legacy"])
+        legacy_result = subprocess.run(
+            legacy_command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(
+            legacy_result.returncode, 0, legacy_result.stderr
+        )
+        self.assertEqual(
+            verify_release_manifest(legacy_output)["files_verified"],
+            12,
+        )
+        for filename in (
+            "gold_train_200_prompt_completion_v1.jsonl",
+            "contrastive_train_200_prompt_completion_v1.jsonl",
+            "gold_loss_val_44_prompt_completion_v1.jsonl",
+            "contrastive_loss_val_44_prompt_completion_v1.jsonl",
+            "answer_only_train_200_prompt_completion_v1.jsonl",
+            "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+        ):
+            self.assertTrue(
+                (legacy_output / "training" / filename).is_file()
             )
 
     def test_cli_core_candidate(self):

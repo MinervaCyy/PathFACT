@@ -17,6 +17,16 @@ ANSWER_PATTERN = re.compile(
     r"Answer:\s*(\[[^\r\n]*\])\s*\Z"
 )
 
+VANILLA_METHOD_FILES = {
+    "train": "vanilla_sft_train_200_prompt_completion_v1.jsonl",
+    "loss_val": "vanilla_sft_loss_val_44_prompt_completion_v1.jsonl",
+}
+
+VANILLA_LEGACY_FILES = {
+    "train": "answer_only_train_200_prompt_completion_v1.jsonl",
+    "loss_val": "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+}
+
 
 def _convert_gold_records(path, expected_count):
     """Convert frozen G06 Gold records to pure answer-only targets."""
@@ -93,12 +103,18 @@ def materialize_vanilla_sft(
     gold_train_path,
     gold_loss_val_path,
     output_dir,
+    naming_mode="method",
 ):
     """Materialise frozen-aligned Train-200 and LossVal-44.
 
     Input files remain unchanged.
     The output directory must not already exist.
+    The default filename is method-based; ``naming_mode="legacy"``
+    restores the historical answer_only path names.
     """
+
+    if naming_mode not in ("method", "legacy"):
+        raise ValueError("Unknown Vanilla-SFT filename naming mode")
 
     train = _convert_gold_records(gold_train_path, 200)
     loss_val = _convert_gold_records(gold_loss_val_path, 44)
@@ -116,10 +132,11 @@ def materialize_vanilla_sft(
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=False)
 
-    filenames = {
-        "train": "answer_only_train_200_prompt_completion_v1.jsonl",
-        "loss_val": "answer_only_loss_val_44_prompt_completion_v1.jsonl",
-    }
+    filenames = (
+        VANILLA_LEGACY_FILES
+        if naming_mode == "legacy"
+        else VANILLA_METHOD_FILES
+    )
 
     paths = {}
 

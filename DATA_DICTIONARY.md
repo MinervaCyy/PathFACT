@@ -1,8 +1,8 @@
-# PathFACT Dataset Data Dictionary (v0.2)
+# PathFACT Dataset Data Dictionary (v0.3)
 
 Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
 
-The G00, G05, G06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserves those resources and adds the two Vanilla-SFT files documented at the end. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
+The G00, G05, G06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserved those resources and added the two Vanilla-SFT files. v0.3 changes the paths of the six G06 SFT resources without changing their bytes, schema, or condition values. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
 
 ## G00 task records: `tasks/g00_tasks.jsonl`
 
@@ -349,9 +349,9 @@ rather than independent task samples.
 
 | Method | Dataset identifier | Files | Supervision |
 |---|---|---|---|
-| Vanilla-SFT | Historical filename prefix `answer_only`; generated-record condition `vanilla` | `answer_only_train_200_prompt_completion_v1.jsonl`; `answer_only_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without a reasoning trace. |
-| LIMO | `gold` | `gold_train_200_prompt_completion_v1.jsonl`; `gold_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
-| ContrastiveLIMO | `contrastive` | `contrastive_train_200_prompt_completion_v1.jsonl`; `contrastive_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
+| Vanilla-SFT | `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without a reasoning trace. The v0.2 filename prefix was `answer_only`. |
+| LIMO | `gold` | `limo_train_200_prompt_completion_v1.jsonl`; `limo_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
+| ContrastiveLIMO | `contrastive` | `contrastive_limo_train_200_prompt_completion_v1.jsonl`; `contrastive_limo_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
 
 `gold` and `contrastive` identify supervision conditions, not method names.
 The existing Hub configurations, filenames, and record values are retained.
@@ -1124,12 +1124,15 @@ these distinctions are observed in G09 `view.source_difficulty` (omitted)
 and in ranking eligibility (nulls). No field meanings should be inferred
 solely from a key name where the code/provenance does not define them.
 
-## v0.2 Vanilla-SFT resources
+## v0.3 Vanilla-SFT resources
 
-The v0.2 expansion adds two G06 answer-only prompt/completion JSONL files:
+The v0.2 release added two G06 answer-only prompt/completion JSONL files;
+v0.3 renames their published paths without changing bytes:
 
-- `training/answer_only_train_200_prompt_completion_v1.jsonl` (200 records)
-- `training/answer_only_loss_val_44_prompt_completion_v1.jsonl` (44 records)
+- `training/vanilla_sft_train_200_prompt_completion_v1.jsonl` (200 records;
+  formerly `answer_only_train_200_prompt_completion_v1.jsonl`)
+- `training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` (44 records;
+  formerly `answer_only_loss_val_44_prompt_completion_v1.jsonl`)
 
 Each record has the same six-field prompt/completion structure as the G06
 Gold resources. `prompt` is the task-only shortest-path question. `completion`
@@ -1138,9 +1141,9 @@ reasoning trace. `prompt_sha256` and `completion_sha256` are SHA-256 hashes of
 the corresponding exact UTF-8 strings. `production_case_id` identifies the
 case, and `condition` is `vanilla`. The case IDs, order, prompts, and answers
 are validated against frozen G06 Gold supervision. Train and LossVal case
-sets are disjoint. In method terminology, these are the Vanilla-SFT files;
-the `answer_only` prefix remains in the historical filenames and `vanilla`
-remains the record condition identifier.
+sets are disjoint. These are the Vanilla-SFT files; `vanilla` remains the
+record condition identifier. The prior `answer_only` paths remain available
+at the tagged v0.1/v0.2 revisions and through the explicit legacy naming mode.
 
 The public files are reconstructed from validated frozen G06 Gold records;
 they are not byte-identical to the historical Stage C files. Historical

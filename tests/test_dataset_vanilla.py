@@ -57,6 +57,15 @@ class TestVanillaSFT(unittest.TestCase):
                 output_dir=root / "output",
             )
 
+            self.assertEqual(
+                outputs["train"].name,
+                "vanilla_sft_train_200_prompt_completion_v1.jsonl",
+            )
+            self.assertEqual(
+                outputs["loss_val"].name,
+                "vanilla_sft_loss_val_44_prompt_completion_v1.jsonl",
+            )
+
             for split, source in (
                 ("train", train),
                 ("loss_val", val),
@@ -111,6 +120,25 @@ class TestVanillaSFT(unittest.TestCase):
                         generated["prompt_sha256"],
                         sha256_text(generated["prompt"]),
                     )
+
+    def test_legacy_naming_mode(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            train_path, val_path, _, _ = self.make_inputs(root)
+            outputs = materialize_vanilla_sft(
+                gold_train_path=train_path,
+                gold_loss_val_path=val_path,
+                output_dir=root / "legacy",
+                naming_mode="legacy",
+            )
+            self.assertEqual(
+                outputs["train"].name,
+                "answer_only_train_200_prompt_completion_v1.jsonl",
+            )
+            self.assertEqual(
+                outputs["loss_val"].name,
+                "answer_only_loss_val_44_prompt_completion_v1.jsonl",
+            )
 
     def test_reject_corrupted_source_hash(self):
         with tempfile.TemporaryDirectory() as temp:

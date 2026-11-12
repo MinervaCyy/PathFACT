@@ -98,6 +98,7 @@ class TestFrozenG06Materializer(unittest.TestCase):
                     for item in task_sources
                 ],
                 output_dir=Path(temp) / "generated",
+                naming_mode="legacy",
             )
 
             expected = audit["outputs"]

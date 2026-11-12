@@ -36,8 +36,11 @@ datasets are outside this operation.
       --g08-train-dist G08_TRAIN_DISTRIBUTION_300_V1.jsonl \
       --g09-balanced G09_BALANCED_846_V1.jsonl \
       --g09-train-dist G09_TRAIN_DISTRIBUTION_1600_V1.jsonl \
-      --dataset-version local-core-v0.1 \
+      --dataset-version local-core-v0.3 \
       --output-dir pathfact_core_candidate
+
+The exporter defaults to method-based v0.3 filenames. Pass
+`--naming-mode legacy` to reproduce the v0.1/v0.2 filenames.
 
 The default expected counts are G00=2,200, G05=244, Train=200 per condition
 and LossVal=44 per condition. The default G05 tier counts are 141 two-sided
@@ -55,16 +58,16 @@ The destination parent must exist and the destination itself must not exist.
 The builder stages its output before renaming it into place and does not
 overwrite an existing directory.
 
-## Candidate layout (10-Core compatible mode)
+## Candidate layout (default v0.3 method names; 10 Core)
 
     manifest.json
     metadata/summary.json
     tasks/g00_tasks.jsonl
     paired/g05_paired.jsonl
-    training/gold_train_200_prompt_completion_v1.jsonl
-    training/contrastive_train_200_prompt_completion_v1.jsonl
-    training/gold_loss_val_44_prompt_completion_v1.jsonl
-    training/contrastive_loss_val_44_prompt_completion_v1.jsonl
+    training/limo_train_200_prompt_completion_v1.jsonl
+    training/contrastive_limo_train_200_prompt_completion_v1.jsonl
+    training/limo_loss_val_44_prompt_completion_v1.jsonl
+    training/contrastive_limo_loss_val_44_prompt_completion_v1.jsonl
     evaluation/g08_balanced_300.jsonl
     evaluation/g08_train_distribution_300.jsonl
     evaluation/g09_balanced_846.jsonl
@@ -74,10 +77,10 @@ overwrite an existing directory.
 licence. Manifest v0.1 remains `draft_not_approved` with a null licence.
 Neither status authorizes redistribution.
 
-## Optional Vanilla-SFT expansion (12-Core candidate; published in v0.2)
+## Optional Vanilla-SFT expansion (12-Core candidate; introduced in v0.2)
 
-The command and layout above remain supported without modification. They
-produce the original 10-Core candidate, containing four G06 training files.
+Both modes produce a 10-Core candidate when no Vanilla inputs are supplied.
+The optional inputs add the two Vanilla-SFT resources, producing 12 Core.
 
 For an expanded candidate, provide both additional G06 inputs:
 
@@ -87,23 +90,39 @@ For an expanded candidate, provide both additional G06 inputs:
 Both options must be supplied together. The expanded candidate contains
 12 Core JSONL resources, adding these files under `training/`:
 
-    training/answer_only_train_200_prompt_completion_v1.jsonl
-    training/answer_only_loss_val_44_prompt_completion_v1.jsonl
+    training/vanilla_sft_train_200_prompt_completion_v1.jsonl
+    training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl
 
-The three Derived resources are built separately. The published v0.2 suite
-contains 12 Core plus 3 Derived JSONL resources. The two Vanilla additions
-do not modify any of the 13 scientific JSONL resources published in v0.1.
+The three Derived resources are built separately. The published v0.3 suite
+contains 12 Core plus 3 Derived JSONL resources. Its six G06 files are
+byte-identical to their v0.2 counterparts, with the method-based names below.
 
 ### SFT method and data identifiers
 
 | Method | Identifier | G06 supervision |
 |---|---|---|
-| Vanilla-SFT | Historical filename prefix `answer_only`; record condition `vanilla` | Final answer only. |
+| Vanilla-SFT | Record condition `vanilla` | Final answer only. |
 | LIMO | `gold` | Ordinary Teacher reasoning and verified answer. |
 | ContrastiveLIMO | `contrastive` | Failure-conditioned corrective Teacher reasoning and verified answer. |
 
-The method names are distinct from the preserved dataset identifiers and
-filenames. Existing configuration names and record values are not renamed.
+The method names are distinct from the preserved dataset condition values.
+Existing Hub configuration names and record values are not renamed.
+
+## Legacy naming mode (v0.1/v0.2)
+
+Use `--naming-mode legacy` with `export-core-candidate` to reproduce these
+historical paths:
+
+    training/gold_train_200_prompt_completion_v1.jsonl
+    training/contrastive_train_200_prompt_completion_v1.jsonl
+    training/gold_loss_val_44_prompt_completion_v1.jsonl
+    training/contrastive_loss_val_44_prompt_completion_v1.jsonl
+    training/answer_only_train_200_prompt_completion_v1.jsonl
+    training/answer_only_loss_val_44_prompt_completion_v1.jsonl
+
+The same option is available for `materialize-vanilla`. The Hub tags
+`pathfact-v0.1` and `pathfact-v0.2` pin historical layouts; local legacy
+exports retain the corresponding filenames without altering historical data.
 
 ### Vanilla-SFT materialisation
 
@@ -114,7 +133,13 @@ reasoning trace.
 
 Generate the release-ready Vanilla files from frozen G06 Gold inputs:
 
-    pathfact dataset materialize-vanilla       --gold-train gold_train_200_prompt_completion_v1.jsonl       --gold-loss-val gold_loss_val_44_prompt_completion_v1.jsonl       --output-dir vanilla_g06
+    pathfact dataset materialize-vanilla \
+      --gold-train gold_train_200_prompt_completion_v1.jsonl \
+      --gold-loss-val gold_loss_val_44_prompt_completion_v1.jsonl \
+      --output-dir vanilla_g06
+
+The command writes the `vanilla_sft_*` paths by default. Add
+`--naming-mode legacy` to write the historical `answer_only_*` names.
 
 The operation requires 200 Train records and 44 LossVal records. It
 recomputes the completion hashes from the actual answer-only text.
