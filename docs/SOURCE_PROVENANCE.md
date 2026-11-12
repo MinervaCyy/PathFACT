@@ -2,7 +2,15 @@
 
 This document records verified historical source fingerprints, implementation mappings, and reproducibility evidence.
 
-**Current dataset release (2026-11-04):** The 13-resource PathFACT v0.1 dataset (10 Core, 3 Derived) is publicly available on Hugging Face at revision [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Its limited CC BY 4.0 scope is separate from the software MIT licence and excludes third-party material outside publisher authority.
+**Historical dataset release (2026-11-04):** PathFACT v0.1 contained 13 resources (10 Core, 3 Derived) and is preserved at Hugging Face revision [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Its limited CC BY 4.0 scope is separate from the software MIT licence and excludes third-party material outside publisher authority.
+
+**Current dataset release:** PathFACT v0.2 contains 15 resources (12 Core,
+3 Derived). It preserves all 13 v0.1 scientific JSONL files and adds two
+Vanilla-SFT answer-only files. In G06, Vanilla-SFT uses the historical
+`answer_only` filename prefix and the generated-record condition `vanilla`;
+LIMO uses `gold` for ordinary Teacher reasoning; ContrastiveLIMO uses
+`contrastive` for failure-conditioned corrective Teacher reasoning. These
+identifiers and paths remain unchanged.
 
 Historical-status note: statements in the release-boundary section about permissions and licensing record the status when this provenance document was prepared. The subsequent v0.1 release package records researcher authorization for its scoped publication. This does not establish institutional approval or rights in excluded material. RC1 manifests remain historical and unchanged.
 
@@ -122,11 +130,10 @@ No such checkpoint-to-dataset-hash claim is made.
 
 ### Release boundary
 
-The published PathFACT v0.1 suite contains 10 Core and 3 Derived
-JSONL resources. The optional expansion adds two Vanilla-SFT
-Core resources, yielding a proposed 12 Core plus 3 Derived suite.
-
-The expansion does not alter the existing published resources.
-The expanded export remains a local candidate until its actual
-release artifacts, provenance metadata and redistribution scope
-have been reviewed.
+The historical PathFACT v0.1 suite contains 10 Core and 3 Derived JSONL
+resources. The published v0.2 suite contains 12 Core and 3 Derived resources;
+its two Vanilla-SFT Core resources are additive. The v0.2 expansion does not
+alter any v0.1 scientific resource. Its reconstructed Vanilla files are
+derived from validated frozen G06 Gold supervision and are distinct from the
+unchanged historical Stage C files. No exact training-file SHA-256 is claimed
+for a historical model checkpoint.

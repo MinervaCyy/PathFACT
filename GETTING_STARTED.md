@@ -52,10 +52,13 @@ for field definitions and validation details.
   graph tasks and reference labels, with no Student responses.
 - **Failure-conditioned supervision:** `paired/g05_paired.jsonl` links
   selected Student failures with Gold and Contrastive Teacher targets.
-- **Frozen supervised fine-tuning examples:** the four `training/` G06 files
-  contain Gold or Contrastive prompt/completion examples in Train-200 or
-  LossVal-44 splits. They are small historical resources, not a general-purpose
-  corpus.
+- **Frozen supervised fine-tuning examples:** the six `training/` G06 files
+  cover three methods. Vanilla-SFT uses the historical `answer_only` filename
+  prefix and the `vanilla` record condition for final-answer-only targets;
+  LIMO uses `gold` for ordinary Teacher reasoning; ContrastiveLIMO uses
+  `contrastive` for failure-conditioned corrective Teacher reasoning. Each
+  method has Train-200 and LossVal-44 files. These are small task-specific
+  resources, not a general-purpose corpus.
 - **Completed evaluation views:** the four G08/G09 files in `evaluation/`
   contain model inputs and reference answers. Keep `reference` out of the model
   input. The two G09 views overlap, so they are not independent case-level
@@ -68,13 +71,14 @@ for field definitions and validation details.
   describe geometric path-cost comparisons. They are not model-response
   preferences or learned preference scores.
 
-The [Dataset Map](DATASET_MAP.md) lists all 13 resources, counts, and intended
-uses. Its overlap section is the reference for detailed split relationships.
+The [Dataset Map](DATASET_MAP.md) lists all 15 v0.2 resources, counts, and
+intended uses. Its overlap section is the reference for detailed split
+relationships.
 
 ## 5. Read your first PathFACT record
 
 Each JSONL line is one JSON object. In a G00 task, `topology` maps node IDs to
-neighbor/weight pairs, and `node_pair` gives source then target. Download the desired JSONL from the [fixed PathFACT v0.1 dataset revision](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The example assumes your working directory is the release-package root, where `tasks/g00_tasks.jsonl` is located; adjust `dataset` if you store it elsewhere.
+neighbor/weight pairs, and `node_pair` gives source then target. Download the desired JSONL from the [current PathFACT dataset](https://huggingface.co/datasets/MinervaCYY/PathFACT); the v0.1 fixed revision remains available for historical comparisons. The example assumes your working directory is the release-package root, where `tasks/g00_tasks.jsonl` is located; adjust `dataset` if you store it elsewhere.
 
 The following small Python example loads the first task and prints its
 endpoints. It uses only Python's standard library:

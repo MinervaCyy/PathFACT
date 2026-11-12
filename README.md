@@ -15,7 +15,7 @@ PathFACT helps researchers study this question. It combines **authentic Student 
   - [Step 1. Turn Student mistakes into paired Teacher examples](#step-1-turn-student-mistakes-into-paired-teacher-examples)
   - [Step 2. Prepare evaluation tasks and graph changes](#step-2-prepare-evaluation-tasks-and-graph-changes)
   - [Step 3. Train models and evaluate their decisions](#step-3-train-models-and-evaluate-their-decisions)
-- [3. What is included in v0.1?](#3-what-is-included-in-v01)
+- [3. Published dataset releases](#3-published-dataset-releases)
 - [4. What research questions can PathFACT help answer?](#4-what-research-questions-can-pathfact-help-answer)
 - [5. Getting Started](#5-getting-started)
 - [6. Guides and resources](#6-guides-and-resources)
@@ -99,7 +99,7 @@ flowchart TB
     class G00,G05,TRAIN,VAL dataset
 ```
 
-**How to read the figure:** G00 contains solver-labelled graph problems. G01 retains 1,525 cases with usable Student failures, and G02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. G04a and G04b retain accepted ordinary and corrective Teacher targets separately. **G05 is their intersection (244 cases), not the sum of 559 and 259.** G06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. Each split has an ordinary file and a corrective file, with matching case IDs. Loss validation measures training-target loss, not independent task-solving ability.
+**How to read the figure:** G00 contains solver-labelled graph problems. G01 retains 1,525 cases with usable Student failures, and G02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. G04a and G04b retain accepted ordinary and corrective Teacher targets separately. **G05 is their intersection (244 cases), not the sum of 559 and 259.** G06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. In the historical v0.1 files, each split has an ordinary file and a corrective file with matching case IDs; v0.2 adds an answer-only Vanilla-SFT file for each split. Loss validation measures training-target loss, not independent task-solving ability.
 
 **Why was G03 needed?** The original Student and Teacher data were collected in multiple experimental runs, not one end-to-end batch. An earlier set of Teacher experiments was followed by additional experiments. When assembling the final canonical dataset, we therefore needed to determine which selected G02 failures could be reliably linked to the Teacher input or output records saved from those runs. **G03 was created to consolidate those batches and check their consistency.** It did not generate new Student failures or Teacher responses. It belongs between G02 and G04 in the frozen construction lineage, but is not drawn as an additional Teacher-generation action in this conceptual figure.
 
@@ -239,7 +239,7 @@ The key comparison is whether **learning how to correct a real mistake** offers 
 
 **Single-Ranking and Dual-Ranking** investigate a different idea: can teaching a model to prefer better candidate routes improve its ability to find shortest paths?
 
-Both methods retain LIMO-style supervised fine-tuning and introduce an additional ranking objective:
+Both ranking conditions retain LIMO-style supervised fine-tuning and introduce an additional ranking objective:
 
 - **Single-Ranking:** Encourages the model to prefer the new shortest route over the old route when a changed edge weight makes the new route better (Switch).
 - **Dual-Ranking:** Also encourages the reverse preference on the original graph when the old route is strictly better, alongside the Switch preference. When the original routes tie, only the applicable Switch ranking objective is used.
@@ -343,16 +343,43 @@ Researchers provide their own environments for Student and Teacher inference, fi
 Finally, **a solver-verified optimal answer does not automatically mean that every sentence in the model's reasoning is correct**. PathFACT distinguishes final-answer verification from the additional reasoning checks recorded for some supervision examples.
 
 
-## 3. What is included in v0.1?
+## 3. Published dataset releases
+
+The current PathFACT v0.2 release contains **12 Core and 3 Derived JSONL
+resources (15 total)**. It preserves all 13 scientific JSONL resources from
+v0.1 and adds two Vanilla-SFT files. The v0.1 counts and filenames below are
+historical; v0.2 does not replace or rewrite those resources.
+
+### SFT methods and dataset identifiers
+
+| Method | Dataset identifier | G06 files | Supervision |
+|---|---|---|---|
+| **Vanilla-SFT** | Filename prefix `answer_only`; generated-record condition `vanilla` | `answer_only_train_200_prompt_completion_v1.jsonl`; `answer_only_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without Teacher reasoning. |
+| **LIMO** | `gold` | `gold_train_200_prompt_completion_v1.jsonl`; `gold_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
+| **ContrastiveLIMO** | `contrastive` | `contrastive_train_200_prompt_completion_v1.jsonl`; `contrastive_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
+
+The Hub configuration identifiers remain `g06_vanilla_train_200`,
+`g06_vanilla_loss_val_44`, `g06_gold_train_200`,
+`g06_gold_loss_val_44`, `g06_contrastive_train_200`, and
+`g06_contrastive_loss_val_44`. `Gold` and `Contrastive` describe supervision
+conditions; LIMO and ContrastiveLIMO are the method names. The historical
+`answer_only` filename prefix and `vanilla` condition value are retained.
+
+### Historical v0.1 release contents
 
 | Resource | What you get | Why it matters |
 |---|---|---|
 | **CPU Python framework (C1)** | Configurable graph/task tools, shortest-path solver and route checks, supported data builders/exporters, and saved-prediction scoring | Reuse data and verification steps without the original GPU/HPC environment |
-| **Core datasets (C2)** | 2,200 G00 tasks; 244 G05 paired failures and Teacher targets; four G06 files; four G08/G09 evaluation views | Work from authentic failures, matched supervision, and known test inputs |
+| **Core datasets (C2)** | 2,200 G00 tasks; 244 G05 paired failures and Teacher targets; four G06 Teacher-reasoning files; four G08/G09 evaluation views | Work from authentic failures, matched supervision, and known test inputs |
 | **Derived datasets (C2)** | 354 counterfactual triples; 200 ranking-eligibility records; 162 Boundary-Local records | Study graph changes and answer-level preferences with solver-derived labels |
 | **Completed experiments (C3)** | SFT comparisons, graph-change tests, Single/Dual Ranking comparisons, and saved evaluation evidence described in project guides | Investigate what training and preference learning do, including where they do not help |
 
-The public dataset suite contains **10 Core and 3 Derived JSONL files**. The data is a **standalone research contribution**, not merely a demo for the Python package. Browse the [Dataset Map](DATASET_MAP.md) for the 13 files and their relationships, and the [Data Dictionary](DATA_DICTIONARY.md) for exact fields and validation limits.
+The historical v0.1 suite contained **10 Core and 3 Derived JSONL files**.
+The current v0.2 suite contains **12 Core and 3 Derived**. The dataset is a
+**standalone research contribution**, not merely a demo for the Python
+package. Browse the [Dataset Map](DATASET_MAP.md) for all 15 current files
+and their relationships, and the [Data Dictionary](DATA_DICTIONARY.md) for
+exact fields and validation limits.
 
 ## 4. What research questions can PathFACT help answer?
 
@@ -393,7 +420,7 @@ Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record a
 ## 6. Guides and resources
 
 - [Getting Started](GETTING_STARTED.md) - first example and model/reference fields.
-- [Dataset Map](DATASET_MAP.md) - all 13 JSONL files, counts, stages, and overlaps.
+- [Dataset Map](DATASET_MAP.md) - all 15 v0.2 JSONL files, counts, stages, and overlaps.
 - [Data Dictionary](DATA_DICTIONARY.md) - dataset fields and validation caveats.
 - [Offline Evaluation](docs/EVALUATION.md) - inputs, scoring policies, outputs, and limitations.
 - [Source Provenance](docs/SOURCE_PROVENANCE.md) - verified source history and reproducibility evidence.
@@ -402,7 +429,7 @@ Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record a
 
 ## 7. Reproducibility, availability, and licensing
 
-The frozen scientific dataset release is [PathFACT v0.1 at revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Documentation updates do not change the 13 scientific JSONL resources in that release.
+The historical v0.1 scientific release is preserved at [revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The current v0.2 release contains 15 scientific JSONL resources; its two Vanilla-SFT files are additive. The public CPU-only framework does not provide Student/Teacher LLM inference or model training: researchers supply their own model environments for those operations. The current dataset card documents the release scope, licensing, and provenance.
 
 The software is licensed under **MIT**. The dataset has a **limited CC BY 4.0 scope**, with third-party exclusions described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) and [Dataset Licensing](docs/DATASET_LICENSE.md). The software licence does not automatically grant rights to dataset content.
 

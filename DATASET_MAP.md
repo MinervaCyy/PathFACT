@@ -1,14 +1,16 @@
 # PathFACT Dataset Map
 
-The fixed v0.1 public revision contains ten Core and three Derived JSONL
-resources. Counts below were checked against the upload manifest and all
-released records. This file is the GitHub repository guide; the Hugging Face
+The published v0.2 suite contains twelve Core and three Derived JSONL
+resources (15 total). The 13-resource v0.1 suite (10 Core, 3 Derived) is
+historical; v0.2 preserves those files and adds two Vanilla-SFT Core files.
+Counts below were checked against the v0.2 upload manifest and released
+records. This file is the GitHub repository guide; the Hugging Face
 [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) is a
 separate publication document with license scope and release disclosures.
 Join records across stages with
 `production_case_id` where present.
 
-## Core resources (10)
+## Core resources (12)
 
 | Resource | Rows | Contents and intended use | Boundary / relationship |
 |---|---:|---|---|
@@ -18,6 +20,8 @@ Join records across stages with
 | `training/contrastive_train_200_prompt_completion_v1.jsonl` | 200 | Frozen Contrastive SFT examples. | Same 200 case identities as Gold Train. |
 | `training/gold_loss_val_44_prompt_completion_v1.jsonl` | 44 | Gold loss-validation examples. | G06 LossVal; disjoint from Train. |
 | `training/contrastive_loss_val_44_prompt_completion_v1.jsonl` | 44 | Contrastive loss-validation examples. | Same 44 case identities as Gold LossVal. |
+| `training/answer_only_train_200_prompt_completion_v1.jsonl` | 200 | Vanilla-SFT final-answer-only examples. | G06 Train; condition is `vanilla`; shares the Gold Train case IDs and order. |
+| `training/answer_only_loss_val_44_prompt_completion_v1.jsonl` | 44 | Vanilla-SFT final-answer-only loss-validation examples. | G06 LossVal; condition is `vanilla`; shares the Gold LossVal case IDs and order. |
 | `evaluation/g08_balanced_300.jsonl` | 300 | Balanced G08 evaluation view, normalized to model input, reference, and provenance. | Disjoint from G08 TrainDist; overlaps G09. |
 | `evaluation/g08_train_distribution_300.jsonl` | 300 | G08 evaluation sampled to the training distribution. | Disjoint from G08 Balanced; overlaps G09. |
 | `evaluation/g09_balanced_846.jsonl` | 846 | Larger balanced G09 evaluation view. | Shares 617 cases with G09 TrainDist. |
@@ -25,8 +29,20 @@ Join records across stages with
 
 G02, G04a, and G04b are validation inputs used to construct/check G05, not
 additional standalone Core release files. G01, G03, and G07 are intermediate
-pipeline stages. G08 Diagnostic-117 and G09 Pool-1956 are not among the ten
+pipeline stages. G08 Diagnostic-117 and G09 Pool-1956 are not among the twelve
 Core files.
+
+## SFT methods and dataset identifiers
+
+| Method | Dataset identifier | Published G06 files | Supervision |
+|---|---|---|---|
+| Vanilla-SFT | Historical filename prefix `answer_only`; generated-record condition `vanilla` | `answer_only_train_200_prompt_completion_v1.jsonl`; `answer_only_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, with no reasoning trace. |
+| LIMO | `gold` | `gold_train_200_prompt_completion_v1.jsonl`; `gold_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
+| ContrastiveLIMO | `contrastive` | `contrastive_train_200_prompt_completion_v1.jsonl`; `contrastive_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
+
+These names distinguish the three SFT methods from their data identifiers.
+The existing filenames, Hub configurations, and record condition values are
+preserved for compatibility.
 
 ## Derived resources (3)
 

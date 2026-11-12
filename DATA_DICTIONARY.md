@@ -1,8 +1,8 @@
-# PathFACT v0.1 Data Dictionary
+# PathFACT Dataset Data Dictionary (v0.2)
 
 Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
 
-This describes the 13 released JSONL files in `pathfact-v0.1-hf-upload`, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
+The G00, G05, G06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserves those resources and adds the two Vanilla-SFT files documented at the end. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
 
 ## G00 task records: `tasks/g00_tasks.jsonl`
 
@@ -336,13 +336,25 @@ Prompt hashes and labels describe provenance; G05 does not include the original
 prompt text. Interpret target text together with its validation fields and
 their stated limits.
 
-## G06 prompt/completion resources (four files)
+## G06 prompt/completion resources
 
-G06 contains four frozen supervised fine-tuning (SFT) files: Gold Train-200,
-Contrastive Train-200, Gold LossVal-44, and Contrastive LossVal-44. Each record
-is one prompt paired with a target completion. The two conditions share case
-IDs, so they are paired views of the same tasks rather than independent task
-samples.
+The original v0.1 release contains four frozen Teacher-reasoning SFT files:
+Gold Train-200, Contrastive Train-200, Gold LossVal-44, and Contrastive
+LossVal-44. The v0.2 release adds Vanilla-SFT Train-200 and LossVal-44 files.
+Each record is one prompt paired with a target completion. The conditions
+share case IDs within each split, so they are paired views of the same tasks
+rather than independent task samples.
+
+### SFT methods and dataset identifiers
+
+| Method | Dataset identifier | Files | Supervision |
+|---|---|---|---|
+| Vanilla-SFT | Historical filename prefix `answer_only`; generated-record condition `vanilla` | `answer_only_train_200_prompt_completion_v1.jsonl`; `answer_only_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without a reasoning trace. |
+| LIMO | `gold` | `gold_train_200_prompt_completion_v1.jsonl`; `gold_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
+| ContrastiveLIMO | `contrastive` | `contrastive_train_200_prompt_completion_v1.jsonl`; `contrastive_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
+
+`gold` and `contrastive` identify supervision conditions, not method names.
+The existing Hub configurations, filenames, and record values are retained.
 
 ### A. What Is a G06 Training Example?
 
@@ -391,7 +403,7 @@ non-null in the released records.
 | Original field | Human-readable display name | JSON type | Plain-English explanation | Research use and interpretation caveat |
 |---|---|---|---|---|
 | `production_case_id` | Case ID | string | Identifies the graph task paired with this example. | Join to the matching G05/G00 case and align Gold with Contrastive. A shared ID means the same task, not an independent example. |
-| `condition` | Supervision condition | string | Either `gold` or `contrastive`, naming the target condition. | Separate or compare the two SFT conditions. It is not a split label; Train versus LossVal is identified by the file. |
+| `condition` | Supervision condition | string | For these original four files, `gold` or `contrastive` names the target condition. The v0.2 Vanilla files use `vanilla`. | Distinguish the three SFT methods. It is not a split label; Train versus LossVal is identified by the file. |
 | `prompt` | Model input prompt | string | Frozen input text, including the graph/task request; Contrastive prompts also include the frozen incorrect Student reasoning trace and corrective instructions. | Feed this text as model input. Do not confuse the included Student reasoning in Contrastive with the Student's submitted final answer, or with the Teacher completion. |
 | `prompt_sha256` | Prompt text fingerprint | string (64-character hexadecimal SHA-256) | Hash of the exact UTF-8 prompt string. | Check that prompt bytes/text have not changed. A hash is an integrity check, not a model-quality measure. |
 | `completion` | Target completion | string | Frozen SFT target: Teacher reasoning text followed by the verified answer path. | Use as the target for supervised fine-tuning or loss calculation. It is a target, not an observed output from a model trained on G06. |
@@ -1126,10 +1138,12 @@ reasoning trace. `prompt_sha256` and `completion_sha256` are SHA-256 hashes of
 the corresponding exact UTF-8 strings. `production_case_id` identifies the
 case, and `condition` is `vanilla`. The case IDs, order, prompts, and answers
 are validated against frozen G06 Gold supervision. Train and LossVal case
-sets are disjoint.
+sets are disjoint. In method terminology, these are the Vanilla-SFT files;
+the `answer_only` prefix remains in the historical filenames and `vanilla`
+remains the record condition identifier.
 
 The public files are reconstructed from validated frozen G06 Gold records;
 they are not byte-identical to the historical Stage C files. Historical
 answer-only supervision exists for these splits, but no claim is made that a
 historical model checkpoint has been matched to an exact training-file
-SHA-256. See [Source Provenance](docs/SOURCE_PROVENANCE.md) for details.
+SHA-256. See [Source Provenance](https://github.com/MinervaCyy/PathFACT/blob/main/docs/SOURCE_PROVENANCE.md) for details.

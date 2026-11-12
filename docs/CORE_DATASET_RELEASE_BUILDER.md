@@ -1,6 +1,9 @@
 # PathFACT Core Dataset Release Candidate Builder
 
-Status: implemented local-candidate operation. This builder creates new local candidates; it is separate from the already published PathFACT v0.1 dataset.
+Status: implemented local-candidate operation. This builder creates new
+local candidates. The expanded 12-Core candidate supports the published
+PathFACT v0.2 suite; the original 10-Core mode preserves compatibility with
+the historical v0.1 layout.
 
 ## Scope
 
@@ -8,7 +11,8 @@ The core builder assembles only the first PathFACT release phase:
 
 - G00: allowlisted shortest-path task records.
 - G05: allowlisted paired Student, Gold Teacher and Contrastive Teacher records.
-- G06: the four frozen Gold/Contrastive Train and LossVal JSONL files.
+- G06: four frozen Gold/Contrastive Teacher-reasoning files and, when both
+  optional inputs are supplied, two Vanilla-SFT answer-only files.
 - G08: normalized Balanced-300 and TrainDist-300 evaluation views.
 - G09: normalized Balanced-846 and TrainDist-1600 evaluation views.
 
@@ -70,7 +74,7 @@ overwrite an existing directory.
 licence. Manifest v0.1 remains `draft_not_approved` with a null licence.
 Neither status authorizes redistribution.
 
-## Optional Vanilla-SFT expansion (12-Core candidate)
+## Optional Vanilla-SFT expansion (12-Core candidate; published in v0.2)
 
 The command and layout above remain supported without modification. They
 produce the original 10-Core candidate, containing four G06 training files.
@@ -86,9 +90,20 @@ Both options must be supplied together. The expanded candidate contains
     training/answer_only_train_200_prompt_completion_v1.jsonl
     training/answer_only_loss_val_44_prompt_completion_v1.jsonl
 
-The three Derived resources are built separately. Together, the proposed
-expanded suite would contain 12 Core plus 3 Derived JSONL resources.
-This expansion does not modify the already published v0.1 resources.
+The three Derived resources are built separately. The published v0.2 suite
+contains 12 Core plus 3 Derived JSONL resources. The two Vanilla additions
+do not modify any of the 13 scientific JSONL resources published in v0.1.
+
+### SFT method and data identifiers
+
+| Method | Identifier | G06 supervision |
+|---|---|---|
+| Vanilla-SFT | Historical filename prefix `answer_only`; record condition `vanilla` | Final answer only. |
+| LIMO | `gold` | Ordinary Teacher reasoning and verified answer. |
+| ContrastiveLIMO | `contrastive` | Failure-conditioned corrective Teacher reasoning and verified answer. |
+
+The method names are distinct from the preserved dataset identifiers and
+filenames. Existing configuration names and record values are not renamed.
 
 ### Vanilla-SFT materialisation
 
