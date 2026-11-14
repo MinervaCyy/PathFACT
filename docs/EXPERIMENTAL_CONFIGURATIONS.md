@@ -92,7 +92,63 @@ The completed Single- and Dual-Ranking experiments support the publication-relev
 
 Exact ranking optimizer settings, training framework version, checkpoint identifiers, evaluated epochs, and some loss-construction details are **Not verified** from the evidence available here. Ranking supervision remains distinct from the three SFT methods. Boundary-Local evidence is limited to candidate preference scoring; no completed Boundary-Local task-only VSP run is claimed.
 
-## 7. Provenance and limitations
+## 7. Historical Experimental Hardware and Software Environments
+
+This section records historical execution environments separately for generation, SFT, and model evaluation. **Execution verified** means a completed run has matching runtime evidence (and, for hardware, an allocation or resource record); **Configured** means the value appears in a launch script or configuration but execution was not independently confirmed; **Not verified** means the available records do not establish the value. Internal paths, account names, and job identifiers are omitted. These are historical environments, not dependencies of the public CPU-only framework.
+
+### 7.1 Student–Teacher generation environment
+
+Completed Student generation for DeepSeek-R1-Distill-Qwen-7B is execution-verified on one AMD Instinct MI355X GPU per generation process, using vLLM `0.11.2.dev673+g839868462` with the ROCm backend. The recorded run used BF16, tensor parallelism 1, no quantization, maximum model length 32,768, temperature 0.6, top-p 0.95, and a 16,384-token completion limit. The exact model and tokenizer revisions were not pinned in the captured run configuration. Python 3.12 is indicated by the runtime package path; its patch version is **Not verified**. PyTorch, Transformers, and the exact ROCm runtime versions are **Not verified** for this generation run.
+
+Completed production Teacher generation for DeepSeek-R1-Distill-Qwen-32B is execution-verified with vLLM `0.11.2.dev673+g839868462`, BF16, tensor parallelism 1, no quantization, maximum model length 32,768, temperature 0.6, top-p 0.95, and an 8,192-token completion limit. The production launch requested one AMD Instinct MI300X GPU. A later Teacher generation wave requested one AMD Instinct MI355X GPU. Thus the recorded Teacher-generation campaigns did not all use the same GPU model. The available records do not establish a complete mapping from every released Teacher output to a specific hardware wave. Python 3.12 is indicated in runtime paths, but the patch version, PyTorch and Transformers versions, and exact ROCm runtime version are **Not verified**.
+
+### 7.2 SFT training environment
+
+| Completed SFT configuration | Hardware evidence | Training software evidence | Status and scope |
+|---|---|---|---|
+| Original Vanilla-SFT, LIMO, ContrastiveLIMO | One AMD Instinct MI355X GPU is recorded for each method in the completed runtime-cost record. | The exact framework and package versions for these particular runs are **Not verified**. Historical training scripts configure Unsloth, but the available evidence does not tie that configuration to an execution manifest for each canonical run. | Hardware execution verified; framework/version not verified per run. |
+| TrueWarm0 (all three methods), Vanilla-SFT early-stopping run, Alternative 1 LIMO and ContrastiveLIMO | **Not verified** per configuration. | **Not verified** per configuration. | Do not generalize the Original hardware or framework record to these runs. |
+| Completed Replay10 SFT runs (supporting replay) | Launch configuration requests one AMD Instinct MI355X GPU; captured runtime metadata reports an available AMD GPU but does not identify its exact model. | Completed run metadata records Unsloth 2026.8.18, TRL 0.24.0, PyTorch 2.10.0+rocm7.1, Transformers 4.57.6, and Python 3.12.8. The launch script requests the ROCm 7.14 module; the exact host module loaded at runtime is not independently confirmed. | Execution and package versions verified for these supporting replay runs only. This is not evidence for the canonical Original or TrueWarm0 environments. |
+
+For the completed Replay10 runs, the captured configuration records BF16 and 16-bit loading, without 4-bit or 8-bit model loading, and LoRA with rank 32, alpha 64, and dropout 0. The recorded adapter target list is the attention and MLP projection layers. The configuration uses Unsloth gradient checkpointing and an 8-bit AdamW optimizer. These details apply only to the Replay10 runs for which the environment metadata was captured. The records do not establish that MI300X and Unsloth were used together for SFT. In particular, the completed canonical three-method cost record identifies MI355X; the completed Replay10 run requesting MI355X is the run with captured Unsloth package versions.
+
+The Original method cost record reports training durations of 191.9927 seconds for Vanilla-SFT, 768.1175 seconds for LIMO, and 2187.5204 seconds for ContrastiveLIMO, each on one GPU. These recorded durations are retained as historical measurements and should not be treated as general hardware benchmarks.
+
+### 7.3 Model inference and evaluation environment
+
+The completed G08/G09 evaluation launch records request one AMD Instinct MI355X GPU and use the ROCm-enabled vLLM environment. The G09 runtime log confirms vLLM `0.11.2.dev673+g839868462`; G08 uses the same recorded launch configuration, while its exact runtime package-version capture is **Not verified**. The verified generation settings are BF16, tensor parallelism 1, no quantization, maximum model length 32,768, temperature 0.6, top-p 0.95, and maximum generation length 16,384 tokens. The evaluation client configuration records concurrency 8. Python 3.12 is indicated by runtime package paths, but the patch version, PyTorch and Transformers versions, and exact ROCm runtime version are **Not verified**.
+
+vLLM was used to generate model predictions; it was not the shortest-path correctness verifier. Evaluation proceeded from saved prediction records through answer extraction and then deterministic CPU-based path verification and offline evaluation. These are distinct stages, and the public PathFACT framework remains CPU-only.
+
+### 7.4 Environment-to-experiment mapping
+
+| Experiment group | Training or generation environment | Evaluation environment | Evidence status |
+|---|---|---|---|
+| Student 7B generation | One MI355X GPU; vLLM version and settings as in §7.1. | Not applicable to generation itself. | Execution verified for the recorded generation run. |
+| Teacher 32B generation | Production wave: one MI300X GPU. Later wave: one MI355X GPU. vLLM version and settings as in §7.1. | Not applicable to generation itself. | Execution verified for recorded waves; mapping of all released outputs to a specific wave is incomplete. |
+| Original Vanilla-SFT, LIMO, ContrastiveLIMO | One MI355X GPU per method; framework and package versions not verified for these runs. | G08/G09 evaluation launch records request one MI355X GPU and vLLM; see §7.3. | Training hardware execution verified; exact run/checkpoint-to-environment and output mapping remains limited as described in §8. |
+| TrueWarm0 methods and Vanilla-SFT early stopping | **Not verified** per run. | The evaluation records document campaign-level G08/G09 settings, but a complete mapping from each evaluated checkpoint to a specific execution record is **Not verified**. | Do not assume the Original training environment applied. |
+| Alternative 1 LIMO and ContrastiveLIMO | **Not verified** per run. | No completed three-method accuracy comparison is claimed. | Training environment not verified; downstream comparison incomplete. |
+| Single- and Dual-Ranking supervision | **Not verified**. | Evaluation environment for each ranking checkpoint is **Not verified**. | Do not infer an environment from the SFT or replay runs. |
+| Completed Replay10 SFT | One-GPU MI355X requested; captured environment and Unsloth versions in §7.2. | A checkpoint-specific inference environment mapping is **Not verified** here. | Supporting replay only; separate from canonical comparison. |
+
+These environment records supplement the run and evaluation metadata in the preceding sections. They do not establish a complete portable mapping from every historical run to its exact training artifact, evaluated checkpoint, and saved prediction file.
+
+### 7.5 Software versions and evidence confidence
+
+| Stage | Hardware | Framework | Verified version information | Evidence status |
+|---|---|---|---|---|
+| Student generation | 1 × AMD Instinct MI355X | vLLM, ROCm backend | vLLM `0.11.2.dev673+g839868462`; Python 3.12 minor series only | Execution verified; Python patch, PyTorch, Transformers, and ROCm versions not verified. |
+| Teacher generation | Production: 1 × AMD Instinct MI300X; later wave: 1 × MI355X | vLLM, ROCm backend | vLLM `0.11.2.dev673+g839868462`; Python 3.12 minor series only | Execution verified for recorded campaigns; complete output-to-wave mapping and runtime versions not verified. |
+| Canonical SFT | 1 × AMD Instinct MI355X per reported Original method run | Framework/version not verified per run | No executed-run package snapshot available | Hardware execution verified; software not verified. |
+| Replay10 SFT | One GPU; launcher requests MI355X | Unsloth with TRL | Python 3.12.8; PyTorch 2.10.0+rocm7.1; Transformers 4.57.6; TRL 0.24.0; Unsloth 2026.8.18 | Captured completed-run metadata; exact physical GPU model and host ROCm module not independently verified. |
+| G08/G09 inference | 1 × AMD Instinct MI355X requested | vLLM, ROCm backend | G09 vLLM `0.11.2.dev673+g839868462`; Python 3.12 minor series only | G09 execution verified; G08 runtime version, Python patch, PyTorch, Transformers, and ROCm versions not verified. |
+
+### 7.6 Limitations
+
+The records support use of AMD MI300X for a completed Teacher-generation campaign, but do not support a claim that MI300X was used with Unsloth for the completed SFT experiments. MI355X is the hardware recorded for the canonical SFT cost comparison and for G08/G09 evaluation launches. Unsloth execution and package versions are captured for supporting Replay10 runs; the canonical method runs’ exact training framework and package versions remain **Not verified**. The precise ROCm runtime version for generation/evaluation, exact package versions for canonical SFT, and per-run mappings for several sensitivity and ranking configurations are incomplete. Hardware and software differences across experiments must not be interpreted as causes of accuracy differences without a controlled comparison. These historical records do not establish complete independent reproducibility.
+
+## 8. Provenance and limitations
 
 - Training values are reported historical settings; exact execution records and checkpoint manifests are not part of the public release. Accordingly, summary-level values are marked as reported and operational details without public verification remain **Not verified**.
 - Not verified values include exact base-model/tokenizer revisions, full prompt/chat serialization, tokenization and truncation, optimizer settings, weight decay, per-device batch and accumulation, clipping, maximum steps, intervals, framework/version, LoRA dropout/targets, and exact run/checkpoint identifiers.
