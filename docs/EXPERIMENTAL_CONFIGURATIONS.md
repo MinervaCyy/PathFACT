@@ -40,7 +40,7 @@ The canonical configuration below reports settings available in the completed Va
 
 The shared values apply to the canonical three-method comparison. Vanilla-SFT uses correct final answers only, LIMO uses ordinary Teacher reasoning and answers, and ContrastiveLIMO uses failure-conditioned corrective Teacher reasoning and answers. The completed cost record reports 191.9927 seconds for Vanilla-SFT, 768.1175 seconds for LIMO, and 2187.5204 seconds for ContrastiveLIMO. These are historical measurements, not general hardware benchmarks.
 
-The retained canonical G06 records contain a recipe summary and the runtime-cost report, but no run-matched trainer configuration, training stdout, environment snapshot, or trainer-state file. Consequently, the canonical runs' exact model/tokenizer revisions, tokenizer and truncation implementation, LoRA dropout and target modules, quantization flags, gradient checkpointing, masking implementation, maximum sequence length, optimizer and its parameters, weight decay, scheduler implementation, per-device batch/accumulation factorization, clipping, maximum steps, logging/validation interval, and training-framework version cannot be recovered from the retained execution evidence. A separate 300-example script configures Unsloth/TRL but does not match the canonical G06 population of 200 training and 44 loss-validation examples, and no completed run record links it to those runs. Replay10 provides execution-captured Unsloth use but is a separate later run; neither record establishes Unsloth for the canonical three-method experiments.
+The retained canonical G06 records contain a recipe summary and the runtime-cost report, but no run-matched trainer configuration, training stdout, environment snapshot, or trainer-state file. Consequently, the canonical runs' exact model/tokenizer revisions, tokenizer and truncation implementation, LoRA dropout and target modules, quantization flags, gradient checkpointing, masking implementation, maximum sequence length, optimizer and its parameters, weight decay, scheduler implementation, per-device batch/accumulation factorization, clipping, maximum steps, logging/validation interval, and training-framework version cannot be recovered from the retained execution evidence. No run-matched execution record establishes whether Unsloth or another training framework was used for the canonical three-method experiments.
 
 ## 4. Training-recipe sensitivity
 
@@ -103,25 +103,7 @@ The captured launch commands and request records do not set top-k, `max_num_seqs
 | Original Vanilla-SFT, LIMO, ContrastiveLIMO | One AMD Instinct MI355X GPU per method in the completed runtime-cost record. | The completed canonical runs have no matching environment manifest or training log identifying Unsloth or another framework/version. | MI355X and runtimes are recorded; framework/version cannot be assigned to these runs. |
 | TrueWarm0 methods; TrueWarm0 Vanilla early stop; Alternative 1 LIMO and ContrastiveLIMO | No per-run GPU allocation record survives for these recipes. | No per-run framework or package snapshot survives. | The Original MI355X record is not generalized to these recipes. Alternative 1 has no completed three-method accuracy comparison. |
 | Completed Single- and Dual-Ranking | No per-run GPU allocation record survives. | No run-matched training framework/version record survives. | The retained records describe supervision weights and examples, not the executed training environment. |
-| Completed Replay10 LIMO and ContrastiveLIMO | One GPU requested as MI355X for each run. Runtime metadata confirms an AMD GPU was available; the device string is generic. The launch preflight requires the `gfx950` architecture. | Unsloth 2026.8.18; TRL 0.24.0; PyTorch `2.10.0+rocm7.1`; Transformers 4.57.6; Python 3.12.8. | Completed run configurations and epoch metrics are present. The launch requested ROCm module 7.14; the PyTorch build identifies ROCm 7.1. The retained run metadata does not record PEFT or bitsandbytes versions, nor the exact loaded host module version. |
-
-The Replay10 settings below are execution-recorded for the two supporting replay runs only; they are not transferred to the canonical Original, TrueWarm0, Alternative 1, or ranking runs.
-
-| Replay10 setting | Recorded value |
-|---|---|
-| Base model | `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`; exact model revision not recorded |
-| Data and serialization | 200 training records and 44 loss-validation records; prompt-completion; no chat template; completion-only loss; assistant-only loss disabled; packing disabled |
-| Maximum sequence length | 24,000 tokens |
-| Precision and loading | BF16; 16-bit loading enabled; 4-bit and 8-bit loading disabled |
-| LoRA | Rank 32; alpha 64; dropout 0; bias `none`; targets `q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj` |
-| Gradient checkpointing | Unsloth |
-| Optimizer and learning rate | `adamw_8bit`; 5e-5 |
-| Batch | Per-device train batch 4; gradient accumulation 16; effective batch 64; per-device evaluation batch 4 |
-| Schedule and duration | 10 warmup steps; 15 epochs; completed at 60 optimizer steps. The run configuration does not set scheduler type, weight decay, or gradient-clipping value. |
-| Seed and reporting | Seed and data seed 3407; logging every step; evaluation each epoch |
-| Saving and selection | Trainer checkpoint saving disabled; the final epoch model is merged to 16-bit after training. No earlier best-validation checkpoint is selected. The lowest recorded validation loss is at epoch 15. |
-
-The Stage C runtime-cost record reports 191.9927 seconds for Vanilla-SFT, 768.1175 seconds for LIMO, and 2187.5204 seconds for ContrastiveLIMO on one MI355X GPU each. These values do not identify a software stack. The only completed run with an execution-captured Unsloth version in the retained records is Replay10; the records do not establish that Unsloth ran on MI300X for any SFT experiment.
+The Stage C runtime-cost record reports 191.9927 seconds for Vanilla-SFT, 768.1175 seconds for LIMO, and 2187.5204 seconds for ContrastiveLIMO on one MI355X GPU each. These values do not identify a software stack.
 
 ### 7.3 Model inference and evaluation environments
 
@@ -129,7 +111,6 @@ The Stage C runtime-cost record reports 191.9927 seconds for Vanilla-SFT, 768.11
 |---|---|---|---|
 | G08 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | The launch script runs vLLM with BF16, maximum model length 32,768, and GPU-memory utilization 0.85. Retained runtime output does not identify the resulting tensor-parallel or quantization settings, nor the exact vLLM, Python, PyTorch, Transformers, or HIP/ROCm versions for G08. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
 | G09 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | Completed vLLM log records vLLM `0.11.2.dev673+g839868462`, ROCm backend, tensor parallel 1, BF16, quantization `None`, maximum model length 32,768, GPU-memory utilization 0.85, and engine seed 0. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
-| Replay10 G08/G09 evaluation | MI355X launch configuration; vLLM-generated predictions for the completed Replay10 merged models. | Completed serving logs report vLLM `0.11.2.dev673+g839868462` and ROCm. The request/evaluation launch uses one GPU per task, BF16, maximum model length 32,768, and GPU-memory utilization 0.85. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; concurrency 8; seed 0. |
 
 The evaluation launch commands do not specify top-k, `max_num_seqs`, or `max_num_batched_tokens`; the retained logs do not record explicit values for those settings. G09 runtime logs do not include PyTorch, Python, Transformers, or HIP/ROCm package versions, and no matching package snapshot was found. G08 has launch configuration and saved evaluation outputs, but no retained serving log to identify its vLLM version or effective tensor-parallel and quantization settings. GPU resource requests and successful ROCm-backed execution identify the GPU class per task, but the retained G08/G09 logs do not include a device-name probe for each task.
 
@@ -146,9 +127,8 @@ vLLM generated the model predictions; it did not perform shortest-path correctne
 | TrueWarm0 methods and Vanilla early stopping | No per-run GPU or software record. | G08/G09 campaign settings are recorded; no checkpoint-specific server record is retained for each condition. | Do not assume these used the Original training stack or hardware. |
 | Alternative 1 LIMO and ContrastiveLIMO | No per-run GPU or software record. | No completed three-method accuracy comparison is reported. | Downstream checkpoint and evaluation mapping is absent. |
 | Single- and Dual-Ranking | No per-run GPU or software record. | No checkpoint-specific inference mapping is retained. | The saved evidence supports the ranking data/weights, not a complete training-to-evaluation trace. |
-| Replay10 LIMO and ContrastiveLIMO | One MI355X requested per run; Unsloth 2026.8.18 and TRL 0.24.0; settings documented in the Replay10 row set. | Replay10 G08/G09 serving logs use vLLM `0.11.2.dev673+g839868462`, ROCm backend; one MI355X requested per task. | Completed replay models are evaluated, but no public checkpoint binary or hash is supplied. |
 
-The exact per-run checkpoint IDs, canonical SFT best-validation-loss epochs, and checkpoint-selection rules remain absent. For Replay10, the executed script disabled periodic checkpoint saves and exported the final epoch model; this rule does not establish selection behavior for the canonical experiments.
+The exact per-run checkpoint IDs, canonical SFT best-validation-loss epochs, and checkpoint-selection rules remain absent.
 
 ### 7.5 Environment evidence and specific gaps
 
@@ -158,7 +138,6 @@ The exact per-run checkpoint IDs, canonical SFT best-validation-loss epochs, and
 | Teacher MI300X run configurations and completed vLLM logs | Model family; vLLM version; engine and request settings; GPU allocation. | Python, PyTorch, Transformers, exact HIP/ROCm runtime, and immutable model/tokenizer revisions. |
 | Teacher MI355X run configurations, frozen container identity, and completed vLLM logs | GPU shard allocation; exact runtime package versions tied to the same frozen container as the Student runtime manifest; engine/request settings. | Immutable Teacher model/tokenizer revisions. |
 | Canonical SFT recipe summary and runtime-cost record | Reported recipe values, completion, one MI355X per Original method, and recorded durations. | Run-matched training command/config, framework and package versions, omitted optimizer/tokenization details, checkpoint IDs, and selection metadata. |
-| Replay10 RUN_CONFIG and TRAIN_METRICS | Completed Unsloth/TRL run environment; training settings; epochs, steps, and validation history. | PEFT and bitsandbytes versions; exact loaded host ROCm module; scheduler type, weight decay, and clipping setting. |
 | G08/G09 launch scripts, G09 vLLM startup log, and saved outputs | MI355X GPU request, request-level decoding settings, G09 vLLM/engine configuration, completed predictions. | G08 exact runtime version; G08/G09 PyTorch, Transformers, and HIP/ROCm package snapshots; explicit top-k, max-num-seqs, and max-num-batched-tokens values. |
 
 Hardware and software differences across experiments must not be interpreted as causes of accuracy differences without a controlled comparison. Documented historical environments do not establish complete independent reproducibility.
