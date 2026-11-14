@@ -51,7 +51,7 @@ The canonical configuration below is reported for the completed Vanilla-SFT, LIM
 | Training framework and version | Not verified | No run environment manifest available |
 | Completion status | Completed canonical SFT experiments | Reported as completed; exact scheduler/job records are not part of the public release |
 
-The shared values above apply to the canonical three-method comparison. The supervision content differs by method as described in Section 2. The historical Vanilla-SFT run-to-training-file SHA256 mapping is not established: a known discrepancy affects the exact historical checkpoint-to-training-file hash attribution. The current public Vanilla files preserve the dataset release provenance but cannot resolve that historical mapping.
+The shared values above apply to the canonical three-method comparison. Vanilla-SFT uses correct final answers only, LIMO uses ordinary Teacher reasoning and answers, and ContrastiveLIMO uses failure-conditioned corrective Teacher reasoning and answers. The historical Vanilla-SFT run-to-training-file SHA256 mapping is not established: a known discrepancy affects the exact historical checkpoint-to-training-file hash attribution. The current public Vanilla files preserve the dataset release provenance but cannot resolve that historical mapping.
 
 ## 4. Training-recipe sensitivity
 
@@ -124,13 +124,13 @@ vLLM was used to generate model predictions; it was not the shortest-path correc
 
 | Experiment group | Training or generation environment | Evaluation environment | Evidence status |
 |---|---|---|---|
-| Student 7B generation | One MI355X GPU; vLLM version and settings as in §7.1. | Not applicable to generation itself. | Execution verified for the recorded generation run. |
-| Teacher 32B generation | Production wave: one MI300X GPU. Later wave: one MI355X GPU. vLLM version and settings as in §7.1. | Not applicable to generation itself. | Execution verified for recorded waves; mapping of all released outputs to a specific wave is incomplete. |
-| Original Vanilla-SFT, LIMO, ContrastiveLIMO | One MI355X GPU per method; framework and package versions not verified for these runs. | G08/G09 evaluation launch records request one MI355X GPU and vLLM; see §7.3. | Training hardware execution verified; exact run/checkpoint-to-environment and output mapping remains limited as described in §8. |
+| Student 7B generation | One MI355X GPU; vLLM version and settings are listed in §7.1 of this guide. | Not applicable to generation itself. | Execution verified for the recorded generation run. |
+| Teacher 32B generation | Production wave: one MI300X GPU. Later wave: one MI355X GPU. vLLM version and settings are listed in §7.1 of this guide. | Not applicable to generation itself. | Execution verified for recorded waves; mapping of all released outputs to a specific wave is incomplete. |
+| Original Vanilla-SFT, LIMO, ContrastiveLIMO | One MI355X GPU per method; framework and package versions not verified for these runs. | G08/G09 evaluation launch records request one MI355X GPU and vLLM; see §7.3 of this guide. | Training hardware execution verified; exact run/checkpoint-to-environment and output mapping remains limited as described in §8 of this guide. |
 | TrueWarm0 methods and Vanilla-SFT early stopping | **Not verified** per run. | The evaluation records document campaign-level G08/G09 settings, but a complete mapping from each evaluated checkpoint to a specific execution record is **Not verified**. | Do not assume the Original training environment applied. |
 | Alternative 1 LIMO and ContrastiveLIMO | **Not verified** per run. | No completed three-method accuracy comparison is claimed. | Training environment not verified; downstream comparison incomplete. |
 | Single- and Dual-Ranking supervision | **Not verified**. | Evaluation environment for each ranking checkpoint is **Not verified**. | Do not infer an environment from the SFT or replay runs. |
-| Completed Replay10 SFT | One-GPU MI355X requested; captured environment and Unsloth versions in §7.2. | A checkpoint-specific inference environment mapping is **Not verified** here. | Supporting replay only; separate from canonical comparison. |
+| Completed Replay10 SFT | One-GPU MI355X requested; captured environment and Unsloth versions are listed in §7.2 of this guide. | A checkpoint-specific inference environment mapping is **Not verified** here. | Supporting replay only; separate from canonical comparison. |
 
 These environment records supplement the run and evaluation metadata in the preceding sections. They do not establish a complete portable mapping from every historical run to its exact training artifact, evaluated checkpoint, and saved prediction file.
 
