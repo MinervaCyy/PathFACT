@@ -7,9 +7,9 @@ reconstruct examples, or include raw model responses.
 ## Command
 
 `pathfact dataset export-derived-candidate` requires explicit paths for the
-finalized counterfactual input and construction script, both Core G09 parent
-views, the G06 ranking input and its construction script, the eligibility
-resource, Core G06 Train-200, Boundary-Local records, protocol and construction
+finalized counterfactual input and construction script, both Core S09 parent
+views, the S06 ranking input and its construction script, the eligibility
+resource, Core S06 Train-200, Boundary-Local records, protocol and construction
 script, the October 15 scoring report, and a new output directory. It also
 requires `--dataset-version`. Run `pathfact dataset export-derived-candidate
 --help` for the exact argument names. The output path must not exist.
@@ -43,7 +43,7 @@ memberships over 354 cases.
 
 ### `training/ranking_eligibility.jsonl`
 
-Exactly 200 G06 parent cases, partitioned as 162 strict bidirectional, 9
+Exactly 200 S06 parent cases, partitioned as 162 strict bidirectional, 9
 Original-tie/Switch-strict, and 29 without a qualifying strict Switch. The
 allowlisted fields are `production_case_id`, `eligibility_category`,
 `counterfactual_available`, `original_graph`, `switch_graph`, `edited_edge`,
@@ -54,7 +54,7 @@ model answer-token NLL margins.
 
 ### `training/boundary_local.jsonl`
 
-Exactly 162 cases, each linked to the strict-bidirectional G06 subset. The
+Exactly 162 cases, each linked to the strict-bidirectional S06 subset. The
 allowlisted fields are `production_case_id`, `eligibility_category`,
 `original_graph`, `local_stay_graph`, `local_switch_graph`, `edited_edge`,
 `original_edge_weight`, `stay_edge_weight`, `switch_edge_weight`,
@@ -76,7 +76,7 @@ status. Condition names, checkpoint metadata, raw inference rows, and scoring
 response content are not exported. The scoring report is only checked against
 the archived input hash, eight conditions, and 1,062 responses per condition.
 
-StepPref, G09 held-out preference results, counterfactual raw outputs, model
+StepPref, S09 held-out preference results, counterfactual raw outputs, model
 completions, prompts, private paths, checkpoint metadata, and experimental
 logs are excluded. Historical findings remain attached to their source
 protocol and do not certify all Teacher reasoning. File-level content, rights,

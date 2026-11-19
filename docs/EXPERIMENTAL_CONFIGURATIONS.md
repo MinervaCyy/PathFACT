@@ -10,7 +10,7 @@ This is provenance documentation, not executable GPU training software. PathFACT
 
 The reported SFT base-model family is `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`. The retained canonical SFT records do not identify the exact model or tokenizer revision used to initialize those runs. A resolved model revision is available for the separate 7B Student generation run; it does not establish the SFT initialization revision.
 
-The three SFT methods use matched G06 populations: 200 training examples and 44 loss-validation examples per method. The validation split is for teacher-forced loss, not independent task-solving evaluation.
+The three SFT methods use matched S06 populations: 200 training examples and 44 loss-validation examples per method. The validation split is for teacher-forced loss, not independent task-solving evaluation.
 
 | Method | Training supervision | Current public training file | Current public loss-validation file | HF dataset configuration |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ The canonical configuration below combines the retained experiment summaries wit
 | Base model family | `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B` |
 | Adaptation | LoRA; rank 32, alpha 64 |
 | Numerical precision | BF16 (reported) |
-| Training and loss-validation data | G06 Train-200 and Loss-Val-44 for each method |
+| Training and loss-validation data | S06 Train-200 and Loss-Val-44 for each method |
 | Loss | Completion-only supervised loss (reported) |
 | Learning rate | 5e-5 |
 | Scheduler and warmup | Linear scheduler (reported); 10 warmup steps |
@@ -47,7 +47,7 @@ The shared values apply to the canonical three-method comparison. Vanilla-SFT us
 
 The original three jobs have recovered run-matched scripts, completed Slurm records, logs, and software-environment evidence. Their trainer runtimes are Vanilla-SFT **191.9927 s**, LIMO **768.1175 s**, and ContrastiveLIMO **2187.5204 s**; these are trainer-reported durations, not total job durations. The Vanilla run also records loss `0.6203672255078951`. A distinct earlier Vanilla experiment has a 188.3396-second trainer runtime and loss `0.44496760225544374`; it is not the canonical pure answer-only baseline and is excluded from this cost comparison. Exact initialized model and tokenizer revisions, some tokenizer/truncation and LoRA details, and portable checkpoint-to-output identities remain unavailable. The retained records do not establish every omitted low-level trainer parameter.
 
-The canonical Vanilla-SFT checkpoint is associated in the historical research records with task-only correct-answer counts of 44 (G08 Balanced-300), 62 (G08 TrainDist-300), 196 (G09 Balanced-846), and 486 (G09 TrainDist-1600). Earlier documentation of an empty-`<think></think>` control describes a reasoning-suppression diagnostic; it is not the canonical pure answer-only baseline. The available records do not justify identifying the earlier `VanillaSFT_G06_sft_v1` experiment with that diagnostic.
+The canonical Vanilla-SFT checkpoint is associated in the historical research records with task-only correct-answer counts of 44 (S08 Balanced-300), 62 (S08 TrainDist-300), 196 (S09 Balanced-846), and 486 (S09 TrainDist-1600). Earlier documentation of an empty-`<think></think>` control describes a reasoning-suppression diagnostic; it is not the canonical pure answer-only baseline. The available records do not justify identifying the earlier `VanillaSFT_G06_sft_v1` experiment with that diagnostic.
 
 ## 4. Training-recipe sensitivity
 
@@ -63,7 +63,7 @@ The reported recipe differences are:
 
 The Original-to-TrueWarm0 comparison changes learning rate and scheduler/warmup configuration together, so it does not isolate a single causal parameter. Alternative1's three completed training jobs do not establish a complete comparable three-method task-level evaluation. The early-stopped Vanilla run is documented separately from the 15-epoch run and is not an epoch-5 checkpoint selected from a completed E15 run. Alternative1, TrueWarm0, and Vanilla E5 logs report the original core software versions; all these jobs used one MI355X GPU, 8 CPU cores, and 128 GB RAM.
 
-Historical experiment records report task-only evaluation across G08 Balanced, G08 TrainDist, G09 Balanced, and G09 TrainDist for Original and TrueWarm0 E15 models, plus the separate TrueWarm0 Vanilla E5 run. These evaluation labels and result aggregates do not identify exact checkpoint artifacts or portable run IDs. The retained records contain no canonical best-validation epoch or checkpoint-selection rule.
+Historical experiment records report task-only evaluation across S08 Balanced, S08 TrainDist, S09 Balanced, and S09 TrainDist for Original and TrueWarm0 E15 models, plus the separate TrueWarm0 Vanilla E5 run. These evaluation labels and result aggregates do not identify exact checkpoint artifacts or portable run IDs. The retained records contain no canonical best-validation epoch or checkpoint-selection rule.
 
 ## 5. Run-to-evaluation traceability
 
@@ -71,16 +71,16 @@ Portable checkpoint artifacts and a complete run/checkpoint-to-output manifest a
 
 | Methods | Recipe | Evaluated epoch | Evaluation views | Evidence boundary |
 |---|---|---:|---|---|
-| Vanilla-SFT, LIMO, ContrastiveLIMO | Original | 15 (reported) | G08 Balanced, G08 TrainDist, G09 Balanced, G09 TrainDist; Original/Stay/Switch counterfactual evaluation | Canonical Vanilla checkpoint is associated with correct-answer counts 44, 62, 196, and 486 on those four task-only views respectively; portable checkpoint ID and full output mapping are unavailable. |
-| Vanilla-SFT, LIMO, ContrastiveLIMO | TrueWarm0 | 15 (reported) | G08 Balanced, G08 TrainDist, G09 Balanced, G09 TrainDist; Original/Stay/Switch counterfactual evaluation | Condition and epoch are reported; exact checkpoint IDs and checkpoint-selection metadata are absent. |
-| Vanilla-SFT | TrueWarm0 early stop | 5 completed | G08 Balanced, G08 TrainDist, G09 Balanced, G09 TrainDist; Original/Stay/Switch counterfactual evaluation | Separate five-epoch early-stopped run, not an E5 checkpoint selected from a completed E15 run. |
+| Vanilla-SFT, LIMO, ContrastiveLIMO | Original | 15 (reported) | S08 Balanced, S08 TrainDist, S09 Balanced, S09 TrainDist; Original/Stay/Switch counterfactual evaluation | Canonical Vanilla checkpoint is associated with correct-answer counts 44, 62, 196, and 486 on those four task-only views respectively; portable checkpoint ID and full output mapping are unavailable. |
+| Vanilla-SFT, LIMO, ContrastiveLIMO | TrueWarm0 | 15 (reported) | S08 Balanced, S08 TrainDist, S09 Balanced, S09 TrainDist; Original/Stay/Switch counterfactual evaluation | Condition and epoch are reported; exact checkpoint IDs and checkpoint-selection metadata are absent. |
+| Vanilla-SFT | TrueWarm0 early stop | 5 completed | S08 Balanced, S08 TrainDist, S09 Balanced, S09 TrainDist; Original/Stay/Switch counterfactual evaluation | Separate five-epoch early-stopped run, not an E5 checkpoint selected from a completed E15 run. |
 | Vanilla-SFT, LIMO, ContrastiveLIMO | Alternative1 | 5 completed | No complete comparable three-method task-level evaluation established | Training completion is verified; this is not evidence of downstream evaluation. |
 
 The Original/Stay/Switch evaluation contains eight conditions: shared Base; the three Original E15 methods; the three TrueWarm0 E15 methods; and TrueWarm0 Vanilla E5. Condition-level aggregates are reported, but exact portable checkpoint identifiers and saved-result filenames are not present in the public release. No private filesystem paths are reproduced.
 
 ## 6. Ranking-supervision configurations
 
-The earlier Single- and Dual-Ranking study augments **LIMO SFT**, not ContrastiveLIMO, with answer-level preference supervision. It uses G06 Train-200 and the 162 strict ranking cases; Single applies Switch ranking at weight 0.1, while Dual splits that weight across Original and Switch (0.05 each). Preserve this study's own historical configurations, evaluations, and negative findings; later ranking conditions do not retroactively define it.
+The earlier Single- and Dual-Ranking study augments **LIMO SFT**, not ContrastiveLIMO, with answer-level preference supervision. It uses S06 Train-200 and the 162 strict ranking cases; Single applies Switch ranking at weight 0.1, while Dual splits that weight across Original and Switch (0.05 each). Preserve this study's own historical configurations, evaluations, and negative findings; later ranking conditions do not retroactively define it.
 
 Recovered execution evidence establishes MI355X training hardware for this earlier study, but the public trace still does not provide a complete portable mapping from every ranking checkpoint to evaluated outputs. Boundary-Local evidence remains separate; no Boundary-Local task-only VSP result is claimed.
 
@@ -129,10 +129,10 @@ The captured launch commands and request records do not set top-k, `max_num_seqs
 
 | Campaign | Hardware and model | Runtime and engine settings | Request settings and evidence |
 |---|---|---|---|
-| G08 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | The launch script runs vLLM with BF16, maximum model length 32,768, and GPU-memory utilization 0.85. Retained runtime output does not identify the resulting tensor-parallel or quantization settings, nor the exact vLLM, Python, PyTorch, Transformers, or HIP/ROCm versions for G08. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
-| G09 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | Completed vLLM log records vLLM `0.11.2.dev673+g839868462`, ROCm backend, tensor parallel 1, BF16, quantization `None`, maximum model length 32,768, GPU-memory utilization 0.85, and engine seed 0. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
+| S08 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | The launch script runs vLLM with BF16, maximum model length 32,768, and GPU-memory utilization 0.85. Retained runtime output does not identify the resulting tensor-parallel or quantization settings, nor the exact vLLM, Python, PyTorch, Transformers, or HIP/ROCm versions for S08. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
+| S09 evaluation | One AMD Instinct MI355X GPU requested per Slurm array task; DeepSeek-R1-Distill-Qwen-7B base or merged SFT models. The evaluated merged checkpoint IDs and weight revisions are not retained in the public release. | Completed vLLM log records vLLM `0.11.2.dev673+g839868462`, ROCm backend, tensor parallel 1, BF16, quantization `None`, maximum model length 32,768, GPU-memory utilization 0.85, and engine seed 0. | Temperature 0.6; top-p 0.95; maximum 16,384 generated tokens; client concurrency 8; request seed 0; request timeout 21,600 seconds. |
 
-The evaluation launch commands do not specify top-k, `max_num_seqs`, or `max_num_batched_tokens`; the retained logs do not record explicit values for those settings. G09 runtime logs do not include PyTorch, Python, Transformers, or HIP/ROCm package versions, and no matching package snapshot was found. G08 has launch configuration and saved evaluation outputs, but no retained serving log to identify its vLLM version or effective tensor-parallel and quantization settings. GPU resource requests and successful ROCm-backed execution identify the GPU class per task, but the retained G08/G09 logs do not include a device-name probe for each task.
+The evaluation launch commands do not specify top-k, `max_num_seqs`, or `max_num_batched_tokens`; the retained logs do not record explicit values for those settings. S09 runtime logs do not include PyTorch, Python, Transformers, or HIP/ROCm package versions, and no matching package snapshot was found. S08 has launch configuration and saved evaluation outputs, but no retained serving log to identify its vLLM version or effective tensor-parallel and quantization settings. GPU resource requests and successful ROCm-backed execution identify the GPU class per task, but the retained S08/S09 logs do not include a device-name probe for each task.
 
 vLLM generated the model predictions; it did not perform shortest-path correctness verification. Evaluation used saved prediction records, answer extraction, and deterministic CPU-based shortest-path verification/offline scoring as separate stages. The public PathFACT framework remains CPU-only.
 
@@ -143,8 +143,8 @@ vLLM generated the model predictions; it did not perform shortest-path correctne
 | Student 7B production generation | GEN-S (one MI300X GPU; vLLM `0.11.2.dev673+g839868462`, ROCm backend). | Not applicable to generation. | Completed 2,200-case Student run is identified by runtime metadata. |
 | Teacher 32B production generation | GEN-T300: one MI300X GPU per 552-case Gold or Contrastive batch. | Not applicable to generation. | Completed production batches are identified; exact mapping of every released Teacher target to a specific later generation wave is incomplete. |
 | Later Teacher 32B wave | GEN-T355: four MI355X one-GPU shard jobs; two Gold and two Contrastive. | Not applicable to generation. | Completed shard run configurations and logs exist; not every released Teacher target is mapped to a shard in public metadata. |
-| Original Vanilla-SFT, LIMO, ContrastiveLIMO | Verified MI355X training environments and run-matched original software stack. | G08/G09 launched on one MI355X per array task. | Historical method/recipe evaluation links are known; portable checkpoint-to-output manifest and public weights are unavailable. |
-| TrueWarm0 methods and Vanilla E5 | Verified MI355X allocation; original core software versions recovered. | G08/G09 campaign settings are recorded. | Per-condition portable checkpoint-to-output mapping remains incomplete. |
+| Original Vanilla-SFT, LIMO, ContrastiveLIMO | Verified MI355X training environments and run-matched original software stack. | S08/S09 launched on one MI355X per array task. | Historical method/recipe evaluation links are known; portable checkpoint-to-output manifest and public weights are unavailable. |
+| TrueWarm0 methods and Vanilla E5 | Verified MI355X allocation; original core software versions recovered. | S08/S09 campaign settings are recorded. | Per-condition portable checkpoint-to-output mapping remains incomplete. |
 | Alternative1 methods | Verified MI355X allocation and core software versions; all three jobs completed. | No complete comparable three-method task-level evaluation established. | Training completion must not be read as evaluated task performance. |
 | Earlier Single-/Dual-Ranking | MI355X training hardware verified. | Historical task-only evaluations are documented. | Its own settings and results remain distinct; no complete portable checkpoint-to-output manifest. |
 | Confirmatory Ranking-185 | Verified MI355X training environment and completed logs. | Final-epoch validation losses are recorded; do not treat as task-level accuracy. | Exact portable checkpoint-to-evaluation mapping remains incomplete. |
@@ -161,7 +161,7 @@ The exact per-run checkpoint IDs, canonical SFT best-validation-loss epochs, and
 | Original SFT scripts, completed-job records, logs, and environment evidence | MI355X allocations; core software versions; training implementation; optimizer/checkpointing; runtime; input/environment/completion checks. | Exact model/tokenizer revisions, some low-level trainer and serialization settings, checkpoint IDs, and full checkpoint-to-output mapping. |
 | Sensitivity-job logs and execution records | MI355X allocation for Alternative1, TrueWarm0 and Vanilla E5; runtimes and core software versions. | Complete comparable Alternative1 task-level evaluation; portable per-checkpoint output mapping. |
 | Ranking execution logs | MI355X evidence for earlier and Ranking-185 groups; Ranking-185 versions, runtimes, and final-epoch validation losses. | Complete portable mapping to every evaluated checkpoint/output; validation loss does not establish task accuracy. |
-| G08/G09 launch scripts, G09 vLLM startup log, and saved outputs | MI355X GPU request, request-level decoding settings, G09 vLLM/engine configuration, completed predictions. | G08 exact runtime version; G08/G09 PyTorch, Transformers, and HIP/ROCm package snapshots; explicit top-k, max-num-seqs, and max-num-batched-tokens values. |
+| S08/S09 launch scripts, S09 vLLM startup log, and saved outputs | MI355X GPU request, request-level decoding settings, S09 vLLM/engine configuration, completed predictions. | S08 exact runtime version; S08/S09 PyTorch, Transformers, and HIP/ROCm package snapshots; explicit top-k, max-num-seqs, and max-num-batched-tokens values. |
 
 Hardware and software differences across experiments must not be interpreted as causes of accuracy differences without a controlled comparison. Documented historical environments do not establish complete independent reproducibility.
 

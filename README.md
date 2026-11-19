@@ -8,6 +8,10 @@ PathFACT helps researchers study this question. It combines **authentic Student 
 
 **Explore the resources:** [Dataset on Hugging Face](https://huggingface.co/datasets/MinervaCYY/PathFACT) | [Getting Started](GETTING_STARTED.md) | [Dataset Map](DATASET_MAP.md) | [Data Dictionary](DATA_DICTIONARY.md) | [Experimental Configurations](docs/EXPERIMENTAL_CONFIGURATIONS.md)
 
+## Official stage names
+
+PathFACT uses S00–S09 as its public Stage identifiers, including S04a for ordinary Teacher targets and S04b for corrective Teacher targets. Released paths, Hub configuration IDs, schema values, and CLI options may retain historical G-prefixed identifiers for compatibility; these identify frozen artifacts, not current stage terminology.
+
 ## Contents
 
 - [1. Why use PathFACT?](#1-why-use-pathfact)
@@ -45,42 +49,42 @@ In the diagrams, **coloured rounded boxes are actions**, **white double-bordered
 
 ### Step 1. Turn Student mistakes into paired Teacher examples
 
-PathFACT starts with weighted shortest-path problems and solver-verified answers (G00). A Student model attempts the problems, and the recorded checks identify 1,525 usable failure cases (G01). From these, 961 cases are selected, each with one frozen incorrect Student reasoning trace (G02). The frozen trace is distinct from the Student's submitted final answer.
+PathFACT starts with weighted shortest-path problems and solver-verified answers (S00). A Student model attempts the problems, and the recorded checks identify 1,525 usable failure cases (S01). From these, 961 cases are selected, each with one frozen incorrect Student reasoning trace (S02). The frozen trace is distinct from the Student's submitted final answer.
 
-The Teacher produces two forms of candidate supervision. For **ordinary reasoning** (used by LIMO), the Teacher receives only the graph problem. For **corrective reasoning** (used by ContrastiveLIMO), the Teacher receives the same problem together with the frozen incorrect Student reasoning trace and corrective instructions. The recorded responses are checked separately (G04a/G04b), cases with accepted targets in both conditions are paired (G05), and matched supervised training and loss-validation resources are prepared (G06). The figure shows these conceptual operations rather than every historical data-consolidation step.
+The Teacher produces two forms of candidate supervision. For **ordinary reasoning** (used by LIMO), the Teacher receives only the graph problem. For **corrective reasoning** (used by ContrastiveLIMO), the Teacher receives the same problem together with the frozen incorrect Student reasoning trace and corrective instructions. The recorded responses are checked separately (S04a/S04b), cases with accepted targets in both conditions are paired (S05), and matched supervised training and loss-validation resources are prepared (S06). The figure shows these conceptual operations rather than every historical data-consolidation step.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 24, "rankSpacing": 22, "wrappingWidth": 500}}}%%
 flowchart TB
     GEN("Create weighted graph tasks")
     SOLVE("Solve shortest paths")
-    G00[["G00 - 2,200 graph tasks"]]
+    S00[["S00 - 2,200 graph tasks"]]
 
     STUDENT("Student attempts tasks")
     CHECK("Identify usable failures")
-    G01["G01 - 1,525 Student failures"]
+    S01["S01 - 1,525 Student failures"]
     TRACE("Freeze one error trace per case")
-    G02["G02 - 961 selected failures"]
+    S02["S02 - 961 selected failures"]
 
     ORDINARY("Ordinary Teacher (task only)")
     CORRECTIVE("Corrective Teacher (task + trace)")
     VERIFY_ORDINARY("Screen ordinary responses")
     VERIFY_CORRECTIVE("Screen corrective responses")
-    G04A["G04a - 559 ordinary targets"]
-    G04B["G04b - 259 corrective targets"]
+    S04a["S04a - 559 ordinary targets"]
+    S04b["S04b - 259 corrective targets"]
 
-    G05[["G05 - 244 paired cases"]]
+    S05[["S05 - 244 paired cases"]]
     FORMAT("Prepare matched SFT datasets")
-    TRAIN[["G06 Train - 200 cases"]]
-    VAL[["G06 Loss-Val - 44 cases"]]
+    TRAIN[["S06 Train - 200 cases"]]
+    VAL[["S06 Loss-Val - 44 cases"]]
 
-    GEN --> SOLVE --> G00
-    G00 --> STUDENT --> CHECK --> G01 --> TRACE --> G02
-    G02 --> ORDINARY --> VERIFY_ORDINARY --> G04A
-    G02 --> CORRECTIVE --> VERIFY_CORRECTIVE --> G04B
-    G04A --> G05
-    G04B --> G05
-    G05 --> FORMAT
+    GEN --> SOLVE --> S00
+    S00 --> STUDENT --> CHECK --> S01 --> TRACE --> S02
+    S02 --> ORDINARY --> VERIFY_ORDINARY --> S04a
+    S02 --> CORRECTIVE --> VERIFY_CORRECTIVE --> S04b
+    S04a --> S05
+    S04b --> S05
+    S05 --> FORMAT
     FORMAT --> TRAIN
     FORMAT --> VAL
 
@@ -95,19 +99,19 @@ flowchart TB
     class STUDENT student
     class ORDINARY,CORRECTIVE teacher
     class SOLVE,CHECK,VERIFY_ORDINARY,VERIFY_CORRECTIVE verifier
-    class G01,TRACE,G02,G04A,G04B,FORMAT python
-    class G00,G05,TRAIN,VAL dataset
+    class S01,TRACE,S02,S04a,S04b,FORMAT python
+    class S00,S05,TRAIN,VAL dataset
 ```
 
-**How to read the figure:** G00 contains solver-labelled graph problems. G01 retains 1,525 cases with usable Student failures, and G02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. G04a and G04b retain accepted ordinary and corrective Teacher targets separately. **G05 is their intersection (244 cases), not the sum of 559 and 259.** G06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. In the historical v0.1 files, each split has an ordinary file and a corrective file with matching case IDs; v0.2 adds an answer-only Vanilla-SFT file for each split. Loss validation measures training-target loss, not independent task-solving ability.
+**How to read the figure:** S00 contains solver-labelled graph problems. S01 retains 1,525 cases with usable Student failures, and S02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. S04a and S04b retain accepted ordinary and corrective Teacher targets separately. **S05 is their intersection (244 cases), not the sum of 559 and 259.** S06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. In the historical v0.1 files, each split has an ordinary file and a corrective file with matching case IDs; v0.2 adds an answer-only Vanilla-SFT file for each split. Loss validation measures training-target loss, not independent task-solving ability.
 
-**Why was G03 needed?** The original Student and Teacher data were collected in multiple experimental runs, not one end-to-end batch. An earlier set of Teacher experiments was followed by additional experiments. When assembling the final canonical dataset, we therefore needed to determine which selected G02 failures could be reliably linked to the Teacher input or output records saved from those runs. **G03 was created to consolidate those batches and check their consistency.** It did not generate new Student failures or Teacher responses. It belongs between G02 and G04 in the frozen construction lineage, but is not drawn as an additional Teacher-generation action in this conceptual figure.
+**Why was S03 needed?** The original Student and Teacher data were collected in multiple experimental runs, not one end-to-end batch. An earlier set of Teacher experiments was followed by additional experiments. When assembling the final canonical dataset, we therefore needed to determine which selected S02 failures could be reliably linked to the Teacher input or output records saved from those runs. **S03 was created to consolidate those batches and check their consistency.** It did not generate new Student failures or Teacher responses. It belongs between S02 and G04 in the frozen construction lineage, but is not drawn as an additional Teacher-generation action in this conceptual figure.
 
-**What did G03 check?** The recorded G03 builder combined **546 previously filtered corrective-Teacher output records** from the earlier work with **412 prepared corrective-Teacher input records** from the later work. These were disjoint case-ID sets, but they were different kinds of records: the 546 were retained responses, while the 412 were prepared inputs. The builder checked that every case belonged to G02, that case IDs were not duplicated, and that the model-visible Teacher message contained the **exact incorrect Student reasoning trace frozen in G02**. It established coverage and trace consistency for **958 of the 961 G02 cases**. The other three cases lacked the required records but remain eligible for the G07 held-out candidate pool. The number 958 is **not** a count of completed Teacher attempts, accepted Teacher answers, or new model generations.
+**What did S03 check?** The recorded S03 builder combined **546 previously filtered corrective-Teacher output records** from the earlier work with **412 prepared corrective-Teacher input records** from the later work. These were disjoint case-ID sets, but they were different kinds of records: the 546 were retained responses, while the 412 were prepared inputs. The builder checked that every case belonged to S02, that case IDs were not duplicated, and that the model-visible Teacher message contained the **exact incorrect Student reasoning trace frozen in S02**. It established coverage and trace consistency for **958 of the 961 S02 cases**. The other three cases lacked the required records but remain eligible for the S07 held-out candidate pool. The number 958 is **not** a count of completed Teacher attempts, accepted Teacher answers, or new model generations.
 
-**How G04 differs from G03:** G03 checks whether records from separate research runs can be consistently connected to the selected Student failures. G04a and G04b instead select Teacher responses from recorded generations using the relevant acceptance procedures: **559 ordinary cases** and **259 corrective cases**, respectively. **G05 keeps the 244 cases that satisfy both conditions.** Some historical protocols generated multiple Teacher attempts per case, so neither G03 nor G04 counts should be read as an attempt count. G03 remains part of the frozen scientific records even though the figure focuses on the reusable Student–Teacher–Verifier method.
+**How G04 differs from S03:** S03 checks whether records from separate research runs can be consistently connected to the selected Student failures. S04a and S04b instead select Teacher responses from recorded generations using the relevant acceptance procedures: **559 ordinary cases** and **259 corrective cases**, respectively. **S05 keeps the 244 cases that satisfy both conditions.** Some historical protocols generated multiple Teacher attempts per case, so neither S03 nor G04 counts should be read as an attempt count. S03 remains part of the frozen scientific records even though the figure focuses on the reusable Student–Teacher–Verifier method.
 
-**Verification and reproducibility:** The solver checks the final route for feasibility and minimum cost, but these checks do not independently certify the entire reasoning trace. Among the 244 G05 pairs, **141 have additional recorded reasoning-factuality validation profiles for both Teacher targets**, while **103 have final-path checks only**. The published G06 filenames and some schema keys retain `gold` for the ordinary condition; these identifiers are kept unchanged for compatibility, although the research explanation uses **ordinary reasoning** for LIMO. G01–G04 are intermediate construction records, not additional standalone public JSONL datasets. See the [Dataset Map](DATASET_MAP.md), [Data Dictionary](DATA_DICTIONARY.md), and [Source Provenance](docs/SOURCE_PROVENANCE.md) for stage counts, validation scope, and historical lineage. The public CPU package does not run Student/Teacher inference or GPU training.
+**Verification and reproducibility:** The solver checks the final route for feasibility and minimum cost, but these checks do not independently certify the entire reasoning trace. Among the 244 S05 pairs, **141 have additional recorded reasoning-factuality validation profiles for both Teacher targets**, while **103 have final-path checks only**. The published S06 filenames and some schema keys retain `gold` for the ordinary condition; these identifiers are kept unchanged for compatibility, although the research explanation uses **ordinary reasoning** for LIMO. S01–G04 are intermediate construction records, not additional standalone public JSONL datasets. See the [Dataset Map](DATASET_MAP.md), [Data Dictionary](DATA_DICTIONARY.md), and [Source Provenance](docs/SOURCE_PROVENANCE.md) for stage counts, validation scope, and historical lineage. The public CPU package does not run Student/Teacher inference or GPU training.
 
 ### Step 2. Prepare Evaluation Tasks and Test Changes in Graph Costs
 
@@ -119,8 +123,8 @@ PathFACT provides evaluation tasks and controlled graph variations to investigat
 
 We prepare two groups of evaluation tasks:
 
-- **G08 — Failure-focused evaluation:** Problems drawn from genuine Student failures that were not used to construct the paired training examples. It includes two 300-case evaluation sets.
-- **G09 — Broader evaluation:** Problems drawn from the larger original task collection, excluding the paired supervision cases. It provides evaluation sets containing 846 and 1,600 cases.
+- **S08 — Failure-focused evaluation:** Problems drawn from genuine Student failures that were not used to construct the paired training examples. It includes two 300-case evaluation sets.
+- **S09 — Broader evaluation:** Problems drawn from the larger original task collection, excluding the paired supervision cases. It provides evaluation sets containing 846 and 1,600 cases.
 
 These datasets let researchers compare performance on previously difficult problems and a broader range of shortest-path tasks. Training separation is based on case IDs; evaluation views can overlap and are not guaranteed to contain entirely different graph structures.
 
@@ -138,13 +142,13 @@ Together, these three versions form a **counterfactual evaluation triple**. The 
 
 For example, in one released record, a direct connection between nodes 1 and 5 has a cost of 160 in Original. Its cost increases to 169 in Stay, where it remains optimal. When the cost reaches 171 in Switch, another route costing 170 becomes better.
 
-PathFACT provides **354 such graph triples**, derived from selected G09 tasks. Researchers can test whether a model independently identifies the correct route under each condition.
+PathFACT provides **354 such graph triples**, derived from selected S09 tasks. Researchers can test whether a model independently identifies the correct route under each condition.
 
 **3. Can a model learn to prefer the better route?**
 
 Finding a shortest path independently is different from choosing between two candidate routes.
 
-For this purpose, we also construct **ranking comparisons** using the 200 G06 training cases. Each comparison considers two paths:
+For this purpose, we also construct **ranking comparisons** using the 200 S06 training cases. Each comparison considers two paths:
 
 - **Old:** A shortest route in the original graph.
 - **New:** An alternative route that becomes optimal after a suitable edge-weight change.
@@ -164,25 +168,25 @@ On one side, Old is better by one cost unit. On the other, New is better by one 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 24, "wrappingWidth": 440}}}%%
 flowchart TB
-    G02["G02 - 961 selected Student failures"]
-    G00[["G00 - 2,200 graph tasks"]]
-    G05[["G05 - 244 paired cases"]]
+    S02["S02 - 961 selected Student failures"]
+    S00[["S00 - 2,200 graph tasks"]]
+    S05[["S05 - 244 paired cases"]]
 
-    REMOVE08("Leave out G05 cases")
-    G07["G07 - 717 held-out failures"]
+    REMOVE08("Leave out S05 cases")
+    S07["S07 - 717 held-out failures"]
     PICK08("Choose two evaluation views")
-    G08[["G08 - Balanced 300 / TrainDist 300"]]
+    S08[["S08 - Balanced 300 / TrainDist 300"]]
 
-    REMOVE09("Leave out G05 cases")
-    POOL09["G09 pool - 1,956 remaining tasks"]
+    REMOVE09("Leave out S05 cases")
+    POOL09["S09 pool - 1,956 remaining tasks"]
     PICK09("Choose two evaluation views")
-    G09[["G09 - Balanced 846 / TrainDist 1,600"]]
+    S09[["S09 - Balanced 846 / TrainDist 1,600"]]
 
     EDIT("Change an edge weight")
     CFCHECK("Check which path is shortest")
     CF[["Derived - Original/Stay/Switch (354 triples)"]]
 
-    TRAIN[["G06 - 200 training cases"]]
+    TRAIN[["S06 - 200 training cases"]]
     PREFBUILD("Build Old/New path comparisons")
     PREFCHECK("Check route-cost order")
     RANK[["Derived - Ranking eligibility (200 cases)"]]
@@ -191,13 +195,13 @@ flowchart TB
     LOCALCHECK("Check the one-unit cost difference")
     BOUND[["Derived - Boundary-Local (162 cases)"]]
 
-    G02 --> REMOVE08 --> G07 --> PICK08 --> G08
-    G05 -.-> REMOVE08
+    S02 --> REMOVE08 --> S07 --> PICK08 --> S08
+    S05 -.-> REMOVE08
 
-    G00 --> REMOVE09 --> POOL09 --> PICK09 --> G09
-    G05 -.-> REMOVE09
+    S00 --> REMOVE09 --> POOL09 --> PICK09 --> S09
+    S05 -.-> REMOVE09
 
-    G09 --> EDIT --> CFCHECK --> CF
+    S09 --> EDIT --> CFCHECK --> CF
     TRAIN --> PREFBUILD --> PREFCHECK --> RANK
     RANK --> LOCAL --> LOCALCHECK --> BOUND
 
@@ -208,13 +212,13 @@ flowchart TB
 
     class EDIT,LOCAL generator
     class CFCHECK,PREFCHECK,LOCALCHECK verifier
-    class G02,G07,POOL09,REMOVE08,REMOVE09,PICK08,PICK09,PREFBUILD python
-    class G00,G05,G08,G09,TRAIN,CF,RANK,BOUND dataset
+    class S02,S07,POOL09,REMOVE08,REMOVE09,PICK08,PICK09,PREFBUILD python
+    class S00,S05,S08,S09,TRAIN,CF,RANK,BOUND dataset
 ```
 
-**Two evaluation populations:** G07 is `G02 minus G05` (717 failures). G08 publishes two disjoint 300-case views; another 117 cases form an unpublished reserve. The G09 pool is `G00 minus G05` (1,956 tasks), from which the 846-case Balanced and 1,600-case TrainDist views are drawn. **The G09 views overlap, and G08/G09 can also overlap.** Across all four public views, there are 3,046 row memberships but 1,859 distinct case IDs. These are not independent repeats of the same-size test population.
+**Two evaluation populations:** S07 is `S02 minus S05` (717 failures). S08 publishes two disjoint 300-case views; another 117 cases form an unpublished reserve. The S09 pool is `S00 minus S05` (1,956 tasks), from which the 846-case Balanced and 1,600-case TrainDist views are drawn. **The S09 views overlap, and S08/S09 can also overlap.** Across all four public views, there are 3,046 row memberships but 1,859 distinct case IDs. These are not independent repeats of the same-size test population.
 
-**Two different uses for changed graphs:** The 354 Original/Stay/Switch triples come from selected G09 cases and are used to test responses to changed tasks. The 200 G06 ranking-eligibility records instead describe whether the original and modified graphs support a strict Old/New route preference: **162** strict in both directions, **9** tied on Original but strict on Switch, and **29** with no qualifying strict Switch. The 162 Boundary-Local records support a separate, training-related analysis of small cost changes. The released Derived files contain graph-based labels, **not model outputs or learned preference scores**.
+**Two different uses for changed graphs:** The 354 Original/Stay/Switch triples come from selected S09 cases and are used to test responses to changed tasks. The 200 S06 ranking-eligibility records instead describe whether the original and modified graphs support a strict Old/New route preference: **162** strict in both directions, **9** tied on Original but strict on Switch, and **29** with no qualifying strict Switch. The 162 Boundary-Local records support a separate, training-related analysis of small cost changes. The released Derived files contain graph-based labels, **not model outputs or learned preference scores**.
 
 
 ### Step 3. Train Models and Evaluate What They Have Learned
@@ -249,8 +253,8 @@ These are separate training runs starting from the same base model, not addition
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontSize": "17px"}, "flowchart": {"htmlLabels": false, "curve": "linear", "nodeSpacing": 25, "rankSpacing": 24, "wrappingWidth": 440}}}%%
 flowchart TB
-    TRAIN[["G06 - Training examples"]]
-    VAL[["G06 - Loss validation"]]
+    TRAIN[["S06 - Training examples"]]
+    VAL[["S06 - Loss validation"]]
     RANK[["Derived - Ranking eligibility"]]
 
     BASE["Base model - No fine-tuning"]
@@ -259,7 +263,7 @@ flowchart TB
     SFTMODEL["SFT model checkpoints"]
     RANKMODEL["Ranking model checkpoints"]
 
-    TESTS[["G08 / G09 - Evaluation tasks"]]
+    TESTS[["S08 / S09 - Evaluation tasks"]]
     CF[["Derived - Original / Stay / Switch"]]
     BOUND[["Derived - Boundary-Local"]]
 
@@ -316,7 +320,7 @@ flowchart TB
 
 We use three complementary evaluation approaches.
 
-- **Test independent problem solving.** Give the model a shortest-path problem from G08 or G09, without showing the correct route or any candidate answers. The model must generate its own solution. We then use the solver to determine whether the resulting route is invalid, valid but more expensive than necessary, or optimal. This directly measures the model's ability to solve the task independently.
+- **Test independent problem solving.** Give the model a shortest-path problem from S08 or S09, without showing the correct route or any candidate answers. The model must generate its own solution. We then use the solver to determine whether the resulting route is invalid, valid but more expensive than necessary, or optimal. This directly measures the model's ability to solve the task independently.
 
 - **Test responses to changing graphs.** Present the Original, Stay, and Switch versions of a graph as three separate shortest-path problems. The model must solve each version independently. We examine whether it continues to find an optimal route when the original best route remains valid (Stay) and when a different route becomes better (Switch). This tests the model's behaviour under controlled changes in edge costs.
 
@@ -328,7 +332,7 @@ For the main independent-solving evaluations, models receive only the graph task
 
 The completed investigation compares ordinary answer supervision, reasoning-based supervision, corrective supervision, and additional ranking objectives. It examines shortest-path correctness, improvements and regressions on individual problems, sensitivity to training settings, responses to changed edge weights, and computational costs.
 
-One important finding is that **better candidate-route preferences do not necessarily translate into better independent problem solving**. The completed Single- and Dual-Ranking experiments did not consistently improve task-only G08/G09 shortest-path performance over LIMO.
+One important finding is that **better candidate-route preferences do not necessarily translate into better independent problem solving**. The completed Single- and Dual-Ranking experiments did not consistently improve task-only S08/S09 shortest-path performance over LIMO.
 
 The Boundary-Local resources support completed preference-related analyses near route-optimality changes. They do not establish a completed independent shortest-path generation result for Boundary-Local tasks.
 
@@ -347,13 +351,13 @@ Finally, **a solver-verified optimal answer does not automatically mean that eve
 
 The current PathFACT v0.3 release contains **12 Core and 3 Derived JSONL
 resources (15 total)**. It preserves the bytes of all 15 v0.2 resources and
-renames only the six G06 SFT paths to match Vanilla-SFT, LIMO, and
+renames only the six S06 SFT paths to match Vanilla-SFT, LIMO, and
 ContrastiveLIMO. v0.1 and v0.2 remain available at their historical revisions
 with their original filenames and checksum inventories.
 
 ### SFT methods and dataset identifiers
 
-| Method | Dataset identifier | G06 files | Supervision |
+| Method | Dataset identifier | S06 files | Supervision |
 |---|---|---|---|
 | **Vanilla-SFT** | Record condition `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only; the historical v0.1/v0.2 filename prefix was `answer_only`. |
 | **LIMO** | Record condition `gold` | `limo_train_200_prompt_completion_v1.jsonl`; `limo_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
@@ -374,13 +378,13 @@ record condition values are unchanged.
 | Resource | What you get | Why it matters |
 |---|---|---|
 | **CPU Python framework (C1)** | Configurable graph/task tools, shortest-path solver and route checks, supported data builders/exporters, and saved-prediction scoring | Reuse data and verification steps without the original GPU/HPC environment |
-| **Core datasets (C2)** | 2,200 G00 tasks; 244 G05 paired failures and Teacher targets; four G06 Teacher-reasoning files; four G08/G09 evaluation views | Work from authentic failures, matched supervision, and known test inputs |
+| **Core datasets (C2)** | 2,200 S00 tasks; 244 S05 paired failures and Teacher targets; four S06 Teacher-reasoning files; four S08/S09 evaluation views | Work from authentic failures, matched supervision, and known test inputs |
 | **Derived datasets (C2)** | 354 counterfactual triples; 200 ranking-eligibility records; 162 Boundary-Local records | Study graph changes and answer-level preferences with solver-derived labels |
 | **Completed experiments (C3)** | SFT comparisons, graph-change tests, Single/Dual Ranking comparisons, and saved evaluation evidence described in project guides | Investigate what training and preference learning do, including where they do not help |
 
 The historical v0.1 suite contained **10 Core and 3 Derived JSONL files**.
 The v0.2 suite contained **12 Core and 3 Derived**; v0.3 retains those same
-resources at new G06 paths. The dataset is a
+resources at new S06 paths. The dataset is a
 **standalone research contribution**, not merely a demo for the Python
 package. Browse the [Dataset Map](DATASET_MAP.md) for all 15 current files
 and their relationships, and the [Data Dictionary](DATA_DICTIONARY.md) for
@@ -436,7 +440,7 @@ Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record a
 
 ## 7. Reproducibility, availability, and licensing
 
-The historical v0.1 scientific release is preserved at [revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The pre-migration v0.2 naming layout is pinned by the Hugging Face `pathfact-v0.2` tag. The current v0.3 release contains 15 scientific JSONL resources at method-based G06 paths; all bytes and condition values are unchanged from v0.2. The public CPU-only framework does not provide Student/Teacher LLM inference or model training: researchers supply their own model environments for those operations. The current dataset card documents the release scope, licensing, and provenance.
+The historical v0.1 scientific release is preserved at [revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The pre-migration v0.2 naming layout is pinned by the Hugging Face `pathfact-v0.2` tag. The current v0.3 release contains 15 scientific JSONL resources at method-based S06 paths; all bytes and condition values are unchanged from v0.2. The public CPU-only framework does not provide Student/Teacher LLM inference or model training: researchers supply their own model environments for those operations. The current dataset card documents the release scope, licensing, and provenance.
 
 The software is licensed under **MIT**. The dataset has a **limited CC BY 4.0 scope**, with third-party exclusions described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) and [Dataset Licensing](docs/DATASET_LICENSE.md). The software licence does not automatically grant rights to dataset content.
 

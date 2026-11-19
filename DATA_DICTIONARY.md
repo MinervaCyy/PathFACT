@@ -2,11 +2,11 @@
 
 Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
 
-The G00, G05, G06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserved those resources and added the two Vanilla-SFT files. v0.3 changes the paths of the six G06 SFT resources without changing their bytes, schema, or condition values. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
+The S00, S05, S06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserved those resources and added the two Vanilla-SFT files. v0.3 changes the paths of the six S06 SFT resources without changing their bytes, schema, or condition values. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
 
-## G00 task records: `tasks/g00_tasks.jsonl`
+## S00 task records: `tasks/g00_tasks.jsonl`
 
-G00 contains 2,200 graph tasks. Each record has 31 top-level fields, grouped
+S00 contains 2,200 graph tasks. Each record has 31 top-level fields, grouped
 below by what a reader uses them for. In the entries, **Original field** is the exact
 JSON key, **Display name** is a reader-friendly label, and **JSON type** is
 the type stored in the file. Arrays and objects contain the kinds of values
@@ -91,11 +91,11 @@ not describe model input.
 | `weighted_graph_sha256` | Weighted graph fingerprint | string (64-character hexadecimal) | A SHA-256 fingerprint identifying the graph structure together with its edge weights. | Useful for identity checks; a hash alone does not establish correctness or reuse rights. |
 | `case_instance_sha256` | Task-instance fingerprint | string (64-character hexadecimal) | A SHA-256 fingerprint identifying the weighted graph together with the ordered endpoints. | Endpoint order is part of the task identity. A hash alone does not establish correctness or reuse rights. |
 
-The three groups above cover every field in the G00 records. Group A identifies
+The three groups above cover every field in the S00 records. Group A identifies
 task inputs, reference answers, and the case-linking key; Group B describes the
 graph and its optimal route; Group C records generation and sampling history.
 
-## Genuine Student–Teacher pairs: G05
+## Genuine Student–Teacher pairs: S05
 
 The released `paired/g05_paired.jsonl` contains 244 records. Each preserves a
 `task`, the associated `student` record, and `teacher_targets` with separate
@@ -104,7 +104,7 @@ Unless noted otherwise, every field is present and non-null in all 244 rows.
 The tables give a reader-friendly name, JSON type/nullability, explanation,
 research use, and an interpretation caveat for each field.
 
-### How to Read a G05 Record
+### How to Read a S05 Record
 
 Read the record in this order: **task** (the graph, endpoints, and solver
 reference) → **Student failure** (the submitted response, extracted route, and
@@ -122,7 +122,7 @@ reference route and cost are solver answers, not Student answers.
 |---|---|---|---|---|---|
 | `schema_version` | Paired-record format | string; non-null | Format label `pathfact-paired-v0.1`. | Select a compatible reader. | Schema label, not a scientific condition. |
 | `production_case_id` | Case ID | string; non-null | Identifies the paired case. | Join this record to the same case in other stages. | Identifier, not a task or model property. |
-| `task` | Shortest-path task | object; non-null | Contains graph, endpoints, reference answer, and task metadata. | Use its graph and endpoints as the problem; use reference fields for scoring. | Preserves the G00 task as a nested object. |
+| `task` | Shortest-path task | object; non-null | Contains graph, endpoints, reference answer, and task metadata. | Use its graph and endpoints as the problem; use reference fields for scoring. | Preserves the S00 task as a nested object. |
 | `task.production_case_id` | Task case ID | string; non-null | Case ID inside the task object. | Check task identity. | Matches the top-level case ID; not a second case. |
 | `task.topology` | Weighted graph | object; non-null | Maps each node to its neighbors and positive edge weights. | Model/solver input. | Undirected edges appear in both endpoint adjacency lists. |
 | `task.node_pair` | Start and destination | array of 2 integers; non-null | Ordered source and destination nodes. | Model/solver input. | Use this order when checking route endpoints. |
@@ -265,8 +265,8 @@ released record.
 
 ### E. Advanced Generation and Provenance Metadata
 
-The task fields below are carried over from G00. They describe construction,
-sampling, and identity, not additional model inputs. See the [G00 section](#g00-task-records-tasksg00_tasksjsonl)
+The task fields below are carried over from S00. They describe construction,
+sampling, and identity, not additional model inputs. See the [S00 section](#s00-task-records-tasksg00_tasksjsonl)
 for fuller explanations of the task metadata.
 
 | Exact original field path | Display name | JSON type and nullability | Explanation | Research use | Caveat |
@@ -332,11 +332,11 @@ for fuller explanations of the task metadata.
 | `teacher_targets.contrastive.generation_settings.max_tokens` | Contrastive token limit | integer; non-null | Maximum generation-token setting recorded for Contrastive. | Describe generation limits. | Does not say how many tokens were used. |
 | `teacher_targets.contrastive.generation_settings.seed` | Contrastive generation seed | integer; non-null | Seed recorded for Contrastive generation. | Trace generation provenance. | Does not guarantee identical output across systems. |
 
-Prompt hashes and labels describe provenance; G05 does not include the original
+Prompt hashes and labels describe provenance; S05 does not include the original
 prompt text. Interpret target text together with its validation fields and
 their stated limits.
 
-## G06 prompt/completion resources
+## S06 prompt/completion resources
 
 The original v0.1 release contains four frozen Teacher-reasoning SFT files:
 Gold Train-200, Contrastive Train-200, Gold LossVal-44, and Contrastive
@@ -356,28 +356,28 @@ rather than independent task samples.
 `gold` and `contrastive` identify supervision conditions, not method names.
 The existing Hub configurations, filenames, and record values are retained.
 
-### A. What Is a G06 Training Example?
+### A. What Is a S06 Training Example?
 
-A G06 record gives a model a **prompt** and the **completion** it is trained to
+A S06 record gives a model a **prompt** and the **completion** it is trained to
 produce. The prompt is the input; the completion is the target text, formatted
-with a reasoning block and a verified shortest-path answer. G06 is a frozen
+with a reasoning block and a verified shortest-path answer. S06 is a frozen
 historical SFT resource: it contains examples, not model weights, trained
 checkpoints, or observed model performance.
 
-G06 records are linked to G05 by `production_case_id`. The task prompt comes
-from the task-only prompt source. The Gold completion uses the matched G05
-Gold Teacher reasoning trace; the Contrastive completion uses the matched G05
+S06 records are linked to S05 by `production_case_id`. The task prompt comes
+from the task-only prompt source. The Gold completion uses the matched S05
+Gold Teacher reasoning trace; the Contrastive completion uses the matched S05
 Contrastive Teacher reasoning trace. In both conditions the answer path is the
-verified G00 shortest path for that case.
+verified S00 shortest path for that case.
 
 ### B. Understanding Gold and Contrastive Prompts
 
 The **Gold prompt** presents the graph task and asks for a shortest path. The
 **Contrastive prompt** presents the same task together with the frozen
 incorrect Student reasoning trace and corrective instructions. The Contrastive
-prompt includes the exact G05 `student.reasoning_trace` text; this is the
+prompt includes the exact S05 `student.reasoning_trace` text; this is the
 Student's reasoning text, not the Student's submitted final answer. The latter
-is stored separately in G05 as `student.final_content` (with its extracted
+is stored separately in S05 as `student.final_content` (with its extracted
 route in `student.predicted_path`). The final answer need not be inferred from
 the reasoning trace.
 
@@ -389,7 +389,7 @@ route may therefore be shared while the input context and target reasoning
 source differ. Identical case IDs identify the same underlying graph task,
 not independent tasks.
 
-The G06 builder constructs Gold prompts from task-only user messages and
+The S06 builder constructs Gold prompts from task-only user messages and
 Contrastive prompts from the matched corrective Teacher messages. It checks
 that the full frozen Student trace occurs in the Contrastive message before
 serializing it. Completions wrap the matched Teacher trace in `<think>` tags
@@ -402,42 +402,42 @@ non-null in the released records.
 
 | Original field | Human-readable display name | JSON type | Plain-English explanation | Research use and interpretation caveat |
 |---|---|---|---|---|
-| `production_case_id` | Case ID | string | Identifies the graph task paired with this example. | Join to the matching G05/G00 case and align Gold with Contrastive. A shared ID means the same task, not an independent example. |
+| `production_case_id` | Case ID | string | Identifies the graph task paired with this example. | Join to the matching S05/S00 case and align Gold with Contrastive. A shared ID means the same task, not an independent example. |
 | `condition` | Supervision condition | string | For these original four files, `gold` or `contrastive` names the target condition. The v0.2 Vanilla files use `vanilla`. | Distinguish the three SFT methods. It is not a split label; Train versus LossVal is identified by the file. |
 | `prompt` | Model input prompt | string | Frozen input text, including the graph/task request; Contrastive prompts also include the frozen incorrect Student reasoning trace and corrective instructions. | Feed this text as model input. Do not confuse the included Student reasoning in Contrastive with the Student's submitted final answer, or with the Teacher completion. |
 | `prompt_sha256` | Prompt text fingerprint | string (64-character hexadecimal SHA-256) | Hash of the exact UTF-8 prompt string. | Check that prompt bytes/text have not changed. A hash is an integrity check, not a model-quality measure. |
-| `completion` | Target completion | string | Frozen SFT target: Teacher reasoning text followed by the verified answer path. | Use as the target for supervised fine-tuning or loss calculation. It is a target, not an observed output from a model trained on G06. |
+| `completion` | Target completion | string | Frozen SFT target: Teacher reasoning text followed by the verified answer path. | Use as the target for supervised fine-tuning or loss calculation. It is a target, not an observed output from a model trained on S06. |
 | `completion_sha256` | Completion text fingerprint | string (64-character hexadecimal SHA-256) | Hash of the exact UTF-8 completion string. | Check that target text has not changed. A hash does not validate the reasoning itself. |
 
 ### D. Training and Validation Splits
 
 - The two Train files each contain **200 cases**; their case-ID sets match.
 - The two LossVal files each contain **44 cases**; their case-ID sets match.
-- Train and LossVal are disjoint and together cover the 244 G05 parent cases.
+- Train and LossVal are disjoint and together cover the 244 S05 parent cases.
 - Both conditions use the same partition: a case is in Gold Train and
   Contrastive Train, or in Gold LossVal and Contrastive LossVal.
 
 LossVal-44 is held out from the Train-200 examples for loss validation during
 SFT work. It is not a held-out task-solving evaluation: its prompt is paired
 with a target completion, and it is intended for measuring loss against that
-target. G08/G09 are the separate task-solving evaluation resources; their
+target. S08/S09 are the separate task-solving evaluation resources; their
 reference answers should be withheld from models during evaluation.
 
 The frozen split is stratified by shortest-path hop difficulty in the
 construction code. Train quotas are 110 Easy, 75 Medium, and 15 Hard cases;
 LossVal quotas are 24 Easy, 16 Medium, and 4 Hard. These strata describe the
-historical G06 construction and are not model performance results.
+historical S06 construction and are not model performance results.
 
 ### E. Scientific Limitations and Provenance
 
 The four files are prompt/completion data only. They contain no model weights,
 trained checkpoints, or outcomes from training or inference. A low loss on
 LossVal would measure agreement with these frozen completions, not by itself
-prove shortest-path competence or generalization. G08/G09 address task-solving
+prove shortest-path competence or generalization. S08/S09 address task-solving
 evaluation separately.
 
-G06 derives its task identities and Teacher targets from the matched G05
-records and uses the G00 verified reference path for completion answers. The
+S06 derives its task identities and Teacher targets from the matched S05
+records and uses the S00 verified reference path for completion answers. The
 Contrastive prompt's embedded Student text is the frozen incorrect reasoning
 trace; it is not the Student's separate submitted final answer. The two
 conditions share cases and answer paths, so do not count Gold and Contrastive
@@ -449,46 +449,46 @@ sentences.
 conditions. The excerpts below are from the released prompts; the bracketed
 omission note is editorial, and the long Student trace is not reproduced.
 
-- **Case and G05 parent:** task endpoints `[6,3]`; reference route
-  `[6,0,5,3]`, cost 2100. G05 records the Student's submitted answer as
+- **Case and S05 parent:** task endpoints `[6,3]`; reference route
+  `[6,0,5,3]`, cost 2100. S05 records the Student's submitted answer as
   `[6,4,5,3]`, categorized `nonexistent_edge`; its predicted cost is null
-  because the route contains a missing edge. G05 stores the reasoning trace
+  because the route contains a missing edge. S05 stores the reasoning trace
   separately from that final answer.
 - **Gold prompt structure:** begins with the actual task instruction
   `You are a helpful assistant that solves shortest path routing problems in computer networks.`
   It ends with `Node pair: [6, 3]` before the assistant-response boundary.
 - **Contrastive prompt structure:** includes the graph task, followed by the
-  actual marker `STUDENT WRONG REASONING TRACE:` and the exact frozen G05
+  actual marker `STUDENT WRONG REASONING TRACE:` and the exact frozen S05
   Student reasoning text (omitted here), then corrective instructions. The
   released prompt ends with `End with the correct final path in the same
   answer format requested by the original task.`
 - **Target completion relationship:** both released completions end with the
-  verified answer `Answer: [6, 0, 5, 3]`. The Gold completion uses the G05 Gold
-  Teacher trace; the Contrastive completion uses the G05 Contrastive Teacher
+  verified answer `Answer: [6, 0, 5, 3]`. The Gold completion uses the S05 Gold
+  Teacher trace; the Contrastive completion uses the S05 Contrastive Teacher
   trace. This example does not require a claim about how the reasoning texts
   differ.
 
-## G08/G09 evaluation resources (four files)
+## S08/S09 evaluation resources (four files)
 
-The release contains four task-evaluation views: G08 Balanced-300,
-G08 TrainDist-300, G09 Balanced-846, and G09 TrainDist-1600. Each record
+The release contains four task-evaluation views: S08 Balanced-300,
+S08 TrainDist-300, S09 Balanced-846, and S09 TrainDist-1600. Each record
 contains a task input, solver reference labels, view membership, and graph/task
 provenance. It does **not** contain a model-generated prediction or a model
 performance result.
 
-### A. What Are G08 and G09 Evaluation Views?
+### A. What Are S08 and S09 Evaluation Views?
 
-G08 and G09 are evaluation stages built from the G00 task universe. G00 has
-2,200 task cases, including the 244 cases used for G06. The G09 source pool
-contains the other 1,956 G00 cases (`G00 − G06`). G09 Balanced and TrainDist
-are two overlapping views of that pool. The G07 candidate set contains
+S08 and S09 are evaluation stages built from the S00 task universe. S00 has
+2,200 task cases, including the 244 cases used for S06. The S09 source pool
+contains the other 1,956 S00 cases (`S00 − S06`). S09 Balanced and TrainDist
+are two overlapping views of that pool. The S07 candidate set contains
 717 cases; its 300-case Balanced view, 300-case TrainDist view, and
-Diagnostic-117 make a disjoint partition. Only the two 300-case G08 views are
-published here; Diagnostic-117 is excluded. G07 is a subset of the G09 pool.
+Diagnostic-117 make a disjoint partition. Only the two 300-case S08 views are
+published here; Diagnostic-117 is excluded. S07 is a subset of the S09 pool.
 
 The release adapter records each row's source stage and view name, and checks
-the upstream G08 `g08_dataset` label. G08 source records supply a `difficulty`
-label; G09 source records are task records without a view or difficulty field,
+the upstream S08 `g08_dataset` label. S08 source records supply a `difficulty`
+label; S09 source records are task records without a view or difficulty field,
 so the adapter assigns their view name from the source file. The observed
 compositions and limits of these views are detailed in Section D; their names
 alone do not define an undocumented sampling algorithm.
@@ -508,7 +508,7 @@ provenance as well as reference labels from the model.
 
 All top-level fields and all nested objects below are present and non-null in
 every released row, except `view.source_difficulty`, which is present and
-non-null in G08 and absent (not null) in G09, and the family-dependent keys
+non-null in S08 and absent (not null) in S09, and the family-dependent keys
 inside `provenance.topology_dimension`, which are omitted when not applicable.
 Graph node IDs are dynamic keys in `model_input.topology`, not additional
 schema fields.
@@ -519,7 +519,7 @@ schema fields.
 |---|---|---|---|---|
 | `schema_version` | Evaluation-record format | string; required, non-null | Format identifier `pathfact-evaluation-v0.1`. | Select a compatible reader. It is a schema label, not an evaluation split. |
 | `production_case_id` | Case ID | string; required, non-null | Stable identifier for this graph task. | Join the same case across stages and count unique tasks. Repeated membership in views does not create a new task. |
-| `view` | Evaluation-view information | object; required, non-null | Stores source stage and view label, plus the G08 source difficulty when supplied. | Identify which evaluation view contains the record. View membership is not an answer or model result. |
+| `view` | Evaluation-view information | object; required, non-null | Stores source stage and view label, plus the S08 source difficulty when supplied. | Identify which evaluation view contains the record. View membership is not an answer or model result. |
 | `model_input` | Model-facing task | object; required, non-null | Holds only the graph and ordered endpoint pair. | Provide this object to the model. Keep `reference` separate. |
 | `reference` | Solver reference answer | object; required, non-null | Holds a minimum-cost route and its total cost. | Score a model's predicted route. Do not include it in model input. |
 | `provenance` | Graph and task metadata | object; required, non-null | Holds graph size/family, route and sampling metadata, seeds, IDs, and fingerprints. | Audit or describe task construction. It is not extra model input or observed performance. |
@@ -528,9 +528,9 @@ schema fields.
 
 | Exact original field path | Human-readable display name | JSON type and optionality | Plain-English explanation | When to use it and caveat |
 |---|---|---|---|---|
-| `view.source_stage` | Source stage | string; required, non-null | `G08` or `G09`, identifying the stage that selected the view. | Group records by source stage. It does not describe model performance. |
+| `view.source_stage` | Source stage | string; required, non-null | `G08` or `G09` in the frozen record, identifying its historical source artifact (public stages S08 and S09). | Group records by source stage. It does not describe model performance. |
 | `view.name` | View name | string; required, non-null | `balanced` or `train_distribution`, preserving the source-defined view label. | Select or report a view. Interpret alongside the verified row composition in Section D; do not infer undisclosed selection rules from the name alone. |
-| `view.source_difficulty` | Source difficulty category | string; optional by stage; non-null when present | G08 source label `Easy`, `Medium`, or `Hard`. It is included only when the source provided it. | Describe G08's recorded path-difficulty strata. It is absent from all G09 rows; difficulty is not model performance. |
+| `view.source_difficulty` | Source difficulty category | string; optional by stage; non-null when present | S08 source label `Easy`, `Medium`, or `Hard`. It is included only when the source provided it. | Describe S08's recorded path-difficulty strata. It is absent from all S09 rows; difficulty is not model performance. |
 
 #### Model-input fields
 
@@ -591,18 +591,18 @@ give the number of distinct tasks.
 
 The source-defined view labels are backed by observed records:
 
-- G08 Balanced has 100 cases each labeled Easy, Medium, and Hard in
-  `view.source_difficulty`. G08 TrainDist has 165 Easy, 112 Medium, and 23
-  Hard cases. The source G08 records identify these labels as `balanced_300`
+- S08 Balanced has 100 cases each labeled Easy, Medium, and Hard in
+  `view.source_difficulty`. S08 TrainDist has 165 Easy, 112 Medium, and 23
+  Hard cases. The source S08 records identify these labels as `balanced_300`
   and `train_distribution_300`.
-- G09 omits `view.source_difficulty`. If its `provenance.gold_path_hops` is
-  grouped using the G06 hop bands (1–3 Easy, 4–5 Medium, 6–8 Hard), G09
-  Balanced has 282 cases in each group; G09 TrainDist has 880 Easy, 600
+- S09 omits `view.source_difficulty`. If its `provenance.gold_path_hops` is
+  grouped using the S06 hop bands (1–3 Easy, 4–5 Medium, 6–8 Hard), S09
+  Balanced has 282 cases in each group; S09 TrainDist has 880 Easy, 600
   Medium, and 120 Hard. This is a descriptive grouping of released records,
-  not a G09 field or a reconstruction of a sampling algorithm.
+  not a S09 field or a reconstruction of a sampling algorithm.
 
-The G09 TrainDist counts are exactly eight times the G06 Train-200 quotas
-(110/75/15); the G08 TrainDist counts are the corresponding 300-case
+The S09 TrainDist counts are exactly eight times the S06 Train-200 quotas
+(110/75/15); the S08 TrainDist counts are the corresponding 300-case
 proportions rounded to whole cases. This confirms the realized distribution
 pattern, but not every step of the upstream sampling procedure.
 
@@ -614,26 +614,26 @@ Pairwise intersections by `production_case_id`, computed from the four files:
 
 | Evaluation views | Shared case IDs |
 |---|---:|
-| G08 Balanced-300 × G08 TrainDist-300 | 0 |
-| G08 Balanced-300 × G09 Balanced-846 | 164 |
-| G08 Balanced-300 × G09 TrainDist-1600 | 221 |
-| G08 TrainDist-300 × G09 Balanced-846 | 110 |
-| G08 TrainDist-300 × G09 TrainDist-1600 | 265 |
-| G09 Balanced-846 × G09 TrainDist-1600 | 617 |
+| S08 Balanced-300 × S08 TrainDist-300 | 0 |
+| S08 Balanced-300 × S09 Balanced-846 | 164 |
+| S08 Balanced-300 × S09 TrainDist-1600 | 221 |
+| S08 TrainDist-300 × S09 Balanced-846 | 110 |
+| S08 TrainDist-300 × S09 TrainDist-1600 | 265 |
+| S09 Balanced-846 × S09 TrainDist-1600 | 617 |
 
-The G08 views are disjoint and partition their 600 published cases. The G09
+The S08 views are disjoint and partition their 600 published cases. The S09
 views have 617 cases in common; their union is 1,829 unique cases, leaving 127
-of the 1,956 G09 pool cases in neither released G09 view. The evaluation-view
-union is 1,859 unique cases. All evaluation case IDs are in G00 and none are
-in G06 Train-200 or LossVal-44. This is case-ID separation from these specific
-G06 splits, not a claim about every external training corpus.
+of the 1,956 S09 pool cases in neither released S09 view. The evaluation-view
+union is 1,859 unique cases. All evaluation case IDs are in S00 and none are
+in S06 Train-200 or LossVal-44. This is case-ID separation from these specific
+S06 splits, not a claim about every external training corpus.
 
 The overlap counts above are by case ID, not by unweighted graph structure.
 Fingerprint comparison confirms that different case IDs can reuse the same
-unweighted structure: for example, G09 Balanced case `PR01238` and G09
+unweighted structure: for example, S09 Balanced case `PR01238` and S09
 TrainDist case `PR01236` share `graph_structure_sha256` but have different
 weighted-graph fingerprints. Do not interpret case-ID disjointness as graph-
-level disjointness. G00 is the parent task universe, includes tasks used in
+level disjointness. S00 is the parent task universe, includes tasks used in
 other stages, and is not an independent blind test set.
 
 ### E. Correct Evaluation Usage and Limitations
@@ -653,14 +653,14 @@ them into model input. The adapter separates `model_input`, `reference`, and
 `provenance`, but researchers must preserve that separation in their own
 evaluation code.
 
-**Worked example — `PR01238`, G09 Balanced.** This is an actual compact row;
+**Worked example — `PR01238`, S09 Balanced.** This is an actual compact row;
 the provenance object below shows selected fields only.
 
 ```json
 {
   "schema_version": "pathfact-evaluation-v0.1",
   "production_case_id": "PR01238",
-  "view": {"source_stage": "G09", "name": "balanced"},
+  "view": {"source_stage": "S09", "name": "balanced"},
   "model_input": {
     "topology": {
       "0": [[1, 70]],
@@ -687,7 +687,7 @@ the provenance object below shows selected fields only.
 }
 ```
 
-This excerpt keeps the task input separate from its solver reference. G09 has
+This excerpt keeps the task input separate from its solver reference. S09 has
 no `view.source_difficulty`; its route metadata remains available under
 `provenance`.
 
@@ -701,7 +701,7 @@ and `node_pair`.
 
 This file contains 354 graph-derived Original/Stay/Switch triples. Each triple
 keeps the same nodes, links, and endpoint pair while changing one link's
-weight. The cases come from one or both G09 evaluation views.
+weight. The cases come from one or both S09 evaluation views.
 
 #### A. What Is a Counterfactual Triple?
 
@@ -746,14 +746,14 @@ pair describes an undirected link and its positive integer weight.
 
 | Exact original field path | Plain-English display name | JSON type and nullability | Clear explanation | Research use and interpretation caveat |
 |---|---|---|---|---|
-| `production_case_id` | Case ID | string; non-null | Identifies the source task and its triple. | Join to the G09 parent task. It identifies a case, not a separate case for every source-view membership. |
-| `source_views` | G09 source-view memberships | array of strings; non-null | Lists `G09_Balanced`, `G09_TrainDist`, or both for the source task. | Track where a case was included. Two entries mean one case belongs to two views, not two independent tasks. |
-| `source_case_instance_sha256` | Source-task fingerprint | 64-character hexadecimal string; non-null | Fingerprint of the source weighted graph and ordered endpoints. | Check source-task identity against its G09 parent. A hash is an identity aid, not a correctness or rights claim. |
-| `source_artifacts` | Source-artifact fingerprints | object; non-null | Groups hashes for the source counterfactual input, construction script, and G09 parent files. | Track provenance and identify the frozen inputs/code. Hashes do not themselves prove scientific validity. |
+| `production_case_id` | Case ID | string; non-null | Identifies the source task and its triple. | Join to the S09 parent task. It identifies a case, not a separate case for every source-view membership. |
+| `source_views` | S09 source-view memberships | array of strings; non-null | Lists `G09_Balanced`, `G09_TrainDist`, or both for the source task. | Track where a case was included. Two entries mean one case belongs to two views, not two independent tasks. |
+| `source_case_instance_sha256` | Source-task fingerprint | 64-character hexadecimal string; non-null | Fingerprint of the source weighted graph and ordered endpoints. | Check source-task identity against its S09 parent. A hash is an identity aid, not a correctness or rights claim. |
+| `source_artifacts` | Source-artifact fingerprints | object; non-null | Groups hashes for the source counterfactual input, construction script, and S09 parent files. | Track provenance and identify the frozen inputs/code. Hashes do not themselves prove scientific validity. |
 | `source_artifacts.evaluation_input_sha256` | Evaluation-input fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the frozen counterfactual evaluation input artifact. | Identify the input used to construct the triples. It is not a hash of this output record. |
 | `source_artifacts.construction_script_sha256` | Construction-script fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the script recorded as constructing the counterfactual input. | Identify construction provenance. The hash does not describe the algorithm in human-readable form. |
-| `source_artifacts.g09_balanced_sha256` | G09 Balanced source fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the recorded G09 Balanced source artifact. | Check source provenance. Not a case-level graph fingerprint. |
-| `source_artifacts.g09_traindist_sha256` | G09 TrainDist source fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the recorded G09 TrainDist source artifact. | Check source provenance. Not a case-level graph fingerprint. |
+| `source_artifacts.g09_balanced_sha256` | S09 Balanced source fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the recorded S09 Balanced source artifact. | Check source provenance. Not a case-level graph fingerprint. |
+| `source_artifacts.g09_traindist_sha256` | S09 TrainDist source fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the recorded S09 TrainDist source artifact. | Check source provenance. Not a case-level graph fingerprint. |
 | `node_pair` | Start and destination | array of 2 integers; non-null | Ordered source and destination nodes shared by all three variants. | Interpret every path and solver cost using these endpoints. Preserve the order. |
 | `original_topology` | Original weighted graph | object; non-null | Adjacency map for the source graph before the edge edit. | Inspect or reconstruct the Original task. Its duplicate is `variants.original.topology`. |
 | `variants` | Three graph variants | object; non-null | Contains `original`, `stay`, and `switch` graph objects and their solver costs. | Compare the same task under three edge weights. The variants are not three independently sampled graphs. |
@@ -821,7 +821,7 @@ route needs to be inferred; it is recorded in `designated_new_path` and
 
 #### E. Provenance and Scientific Limitations
 
-`source_views` records membership in the G09 Balanced and/or G09 TrainDist
+`source_views` records membership in the S09 Balanced and/or S09 TrainDist
 source views. The 354 unique case IDs account for 482 memberships: 179 in
 G09_Balanced and 303 in G09_TrainDist. There are 128 cases in both views and
 226 in one view only. Thus 482 is a count of source-view memberships, not 482
@@ -837,7 +837,7 @@ themselves.
 
 ### `training/ranking_eligibility.jsonl` (200 rows)
 
-This derived resource links to all 200 case IDs in G06 Train-200. It records
+This derived resource links to all 200 case IDs in S06 Train-200. It records
 whether the old and new candidate routes have a usable graph-cost comparison
 on an Original graph and, when available, a Switch graph. The labels describe
 route costs in weighted graphs. They are not model outputs or model preference
@@ -845,15 +845,15 @@ scores.
 
 #### A. What Is Ranking Eligibility?
 
-The file identifies which G06 training cases support a particular
-counterfactual route-comparison setup. The cases originate from G06 Train-200:
+The file identifies which S06 training cases support a particular
+counterfactual route-comparison setup. The cases originate from S06 Train-200:
 the construction code checks that the ranking records, eligibility records,
-and released G06 Gold Train-200 records have the same 200 unique
+and released S06 Gold Train-200 records have the same 200 unique
 `production_case_id` values. This makes the resource useful for studying the
 graph conditions available for training-related ranking objectives. It does
 not make these rows independent held-out evaluation tasks.
 
-For each case, the old route is the route used as the original G06 reference.
+For each case, the old route is the route used as the original S06 reference.
 Where the source supplies a valid Switch graph and a new candidate route, the
 record compares both routes on both graphs. Route costs and solver minima
 support the eligibility labels; no model score is included.
@@ -861,9 +861,9 @@ support the eligibility labels; no model score is included.
 #### B. Comparing the Old and New Routes
 
 `original_graph` contains the weighted graph and ordered endpoints for the
-G06 task. `switch_graph`, when present, has the same nodes, links, and
+S06 task. `switch_graph`, when present, has the same nodes, links, and
 endpoints, with the selected `edited_edge` assigned `new_edge_weight` instead
-of `old_edge_weight`. `old_path` is the G06 reference route. `new_path`, when
+of `old_edge_weight`. `old_path` is the S06 reference route. `new_path`, when
 present, is the solver-optimal route for the supplied Switch graph.
 
 `path_costs` gives the cost of each named route in each graph. `solver_costs`
@@ -883,7 +883,7 @@ The dataset has three categories:
   in Original, while the new route is strictly cheaper in Switch. A Switch
   comparison exists, but there is no strict Original preference; these rows
   therefore do not meet the bidirectional criterion.
-- **`no_strict_switch` (29):** the G06 source marks no qualifying Switch
+- **`no_strict_switch` (29):** the S06 source marks no qualifying Switch
   counterfactual as available. Only the Original old route and its solver
   minimum are retained, so these rows cannot supply a two-graph comparison.
 
@@ -920,10 +920,10 @@ graph. Node IDs inside paths and endpoint arrays are JSON integers.
 
 | Exact original field path | Human-readable display name | JSON type and nullability | Plain-English explanation | Intended research use and interpretation caveat |
 |---|---|---|---|---|
-| `production_case_id` | G06 case ID | string; non-null | Identifies the parent G06 task. | Join this row to G06 Train-200. It is not a unique evaluation-case identifier independent of G06. |
+| `production_case_id` | S06 case ID | string; non-null | Identifies the parent S06 task. | Join this row to S06 Train-200. It is not a unique evaluation-case identifier independent of S06. |
 | `eligibility_category` | Route-comparison category | string; non-null | One of `strict_bidirectional`, `original_tie_switch_strict`, or `no_strict_switch`. | Select cases by the available graph-cost relation. The label describes construction eligibility, not model performance. |
 | `counterfactual_available` | Switch comparison available | boolean; non-null | `true` when the source supplied a Switch comparison; `false` for the 29 `no_strict_switch` rows. | Filter rows with two-graph comparisons. `true` does not guarantee strict preference in Original; 9 such rows tie there. |
-| `original_graph` | Original task graph and endpoints | object; non-null | The G06 weighted graph before the edge change, together with the task's endpoint pair. | Reconstruct the original shortest-path task. Its route costs are graph-derived labels, not model scores. |
+| `original_graph` | Original task graph and endpoints | object; non-null | The S06 weighted graph before the edge change, together with the task's endpoint pair. | Reconstruct the original shortest-path task. Its route costs are graph-derived labels, not model scores. |
 | `original_graph.topology` | Original weighted topology | object; non-null | Adjacency map for the Original graph, keyed by node ID. | Recompute route costs or shortest paths. Dynamic node-ID keys are graph contents, not additional schema fields. |
 | `original_graph.node_pair` | Original start and destination | array of 2 integers; non-null | Ordered source and destination nodes for the task. | Interpret both paths and graph costs against these endpoints; do not reorder them. |
 | `switch_graph` | Switch graph and endpoints | object or null; null in 29 rows | The counterfactual graph after changing one edge weight, with the same endpoint pair. | Compare route costs after the edit when present. Null means no Switch comparison was supplied by the source. |
@@ -932,7 +932,7 @@ graph. Node IDs inside paths and endpoint arrays are JSON integers.
 | `edited_edge` | Changed edge | array of 2 integers or null; null in 29 rows | The two node IDs connected by the edge whose weight changes. | Identify the changed undirected link. The pair's order is not travel direction. |
 | `old_edge_weight` | Edge weight before Switch | integer or null; null in 29 rows | Weight of `edited_edge` in Original. | Compare with `new_edge_weight`; absent when no Switch comparison is supplied. |
 | `new_edge_weight` | Edge weight in Switch | integer or null; null in 29 rows | Replacement weight assigned to `edited_edge` in Switch. | Check the graph edit. It alone does not determine which full route is cheapest. |
-| `old_path` | Old/reference route | array of integers; non-null | G06's reference route for the Original task. | Compare its cost across Original and Switch. It is solver-optimal in Original, not necessarily in Switch. |
+| `old_path` | Old/reference route | array of integers; non-null | S06's reference route for the Original task. | Compare its cost across Original and Switch. It is solver-optimal in Original, not necessarily in Switch. |
 | `new_path` | Switch-optimal route | array of integers or null; null in 29 rows | Solver-optimal candidate route supplied with the Switch comparison. | Compare against `old_path` in both graphs. It is absent when no Switch comparison is available. |
 | `path_costs` | Candidate-route costs | object; non-null | Costs of the named old and new routes on the graphs where the comparison exists. | Compare candidates directly. These are specific route costs, not necessarily graph minima. |
 | `path_costs.original_old` | Old route cost in Original | integer; non-null | Cost of `old_path` on `original_graph`. | Compare with `solver_costs.original`; equal in all rows. |
@@ -945,19 +945,19 @@ graph. Node IDs inside paths and endpoint arrays are JSON integers.
 | `preference_relations` | Graph-derived route relations | object; non-null | Records the cost-based relation between old and new routes in each graph. | Use as a compact categorical summary, then consult `path_costs` for magnitudes. These are not model preference scores. |
 | `preference_relations.original` | Original route relation | string; non-null | `old_strictly_preferred`, `tie`, or `not_ranked`. | In this file, the first two occur when Switch data exists; `not_ranked` marks the 29 no-Switch rows. “Preferred” means lower graph cost. |
 | `preference_relations.switch` | Switch route relation | string; non-null | `new_strictly_preferred` when Switch data exists, otherwise `not_available`. | `not_available` marks absent comparison data; it is not a tie or model failure. |
-| `source_artifacts` | Source fingerprint group | object; non-null | Groups SHA-256 fingerprints for ranking input, eligibility input, G06 Train-200, and construction code. | Trace which frozen artifacts the record was derived from. Fingerprints identify bytes; they do not establish scientific validity. |
-| `source_artifacts.ranking_sha256` | Ranking-input fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the archived G06 ranking input. | Identify the frozen ranking source used in construction; not a hash of this output row. |
+| `source_artifacts` | Source fingerprint group | object; non-null | Groups SHA-256 fingerprints for ranking input, eligibility input, S06 Train-200, and construction code. | Trace which frozen artifacts the record was derived from. Fingerprints identify bytes; they do not establish scientific validity. |
+| `source_artifacts.ranking_sha256` | Ranking-input fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the archived S06 ranking input. | Identify the frozen ranking source used in construction; not a hash of this output row. |
 | `source_artifacts.eligibility_sha256` | Eligibility-input fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the archived eligibility and mode input. | Identify the source of availability/category decisions; not a model score. |
-| `source_artifacts.core_g06_train_sha256` | G06 Train-200 fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the released G06 Gold Train-200 parent file. | Trace the parent training split. The file is training-related, not held-out evaluation data. |
+| `source_artifacts.core_g06_train_sha256` | S06 Train-200 fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the released S06 Gold Train-200 parent file. | Trace the parent training split. The file is training-related, not held-out evaluation data. |
 | `source_artifacts.construction_script_sha256` | Construction-code fingerprint | 64-character hexadecimal string; non-null | SHA-256 recorded for the script associated with constructing the ranking input. | Identify the recorded construction artifact; the hash itself does not explain or validate its algorithm. |
 
 #### E. Research Uses and Scientific Limitations
 
-Researchers can use this resource to identify which G06 Train-200 cases have
+Researchers can use this resource to identify which S06 Train-200 cases have
 strict bidirectional graph-cost comparisons, Original ties followed by a
 strict Switch comparison, or no supplied Switch comparison. It can support
 analysis of candidate selection or preparation of training-related
-counterfactual ranking data. These rows share case IDs with G06 Train-200;
+counterfactual ranking data. These rows share case IDs with S06 Train-200;
 they are not independent held-out examples.
 
 The graph-cost gaps (for example, 244 versus 207) are not answer-token NLL
@@ -969,7 +969,7 @@ solver-derived comparisons, not model predictions or training outcomes.
 
 ### `training/boundary_local.jsonl` (162 rows)
 
-This resource contains local Stay/Switch graph variants for 162 G06
+This resource contains local Stay/Switch graph variants for 162 S06
 Train-200 tasks. It moves the two candidate routes to either side of a
 calculated edge-weight at which their costs tie. The construction then checks
 that the designated winning route is also a shortest path in each local
@@ -977,11 +977,11 @@ graph.
 
 #### A. What Is Boundary-Local?
 
-Each row is linked to a case in the `strict_bidirectional` subset of G06
+Each row is linked to a case in the `strict_bidirectional` subset of S06
 Train-200. Construction requires the Boundary-Local case IDs to match that
 162-case subset exactly. In the Original graph, `old_path` is strictly
 cheaper than `new_path`; these are the same parent graph and paths recorded
-for the G06 ranking case.
+for the S06 ranking case.
 
 The resource makes two nearby versions of that same graph. In Local Stay,
 the old route remains strictly cheaper. In Local Switch, the new route
@@ -1018,7 +1018,7 @@ weight direction is reversed while the same route-cost conditions hold.
 
 #### C. Original, Local Stay and Local Switch
 
-- `original_graph` is the G06 parent task graph. Its endpoints, topology,
+- `original_graph` is the S06 parent task graph. Its endpoints, topology,
   old/new paths, edited edge, and Original edge weight are checked against
   the strict-bidirectional ranking record.
 - `local_stay_graph` keeps the same nodes, links, and endpoints, changing
@@ -1030,7 +1030,7 @@ weight direction is reversed while the same route-cost conditions hold.
 
 In every row, the three topologies preserve the same edge set and all
 unmodified edge weights. The `old_path` and `new_path` are the two designated
-candidate routes carried from the G06 parent. Which one traverses the edited
+candidate routes carried from the S06 parent. Which one traverses the edited
 edge varies by case. The recorded edge-use flags show that exactly one of
 the two candidate routes uses it.
 
@@ -1045,9 +1045,9 @@ integers.
 
 | Exact original field path | Human-readable display name | JSON type and nullability | Plain-English explanation | Intended research use and interpretation caveat |
 |---|---|---|---|---|
-| `production_case_id` | G06 case ID | string; non-null | Identifies the parent shortest-path task. | Join to G06 Train-200 and its ranking-eligibility row. It is training-related, not a held-out evaluation ID. |
-| `eligibility_category` | Parent eligibility category | string; non-null; always `strict_bidirectional` | Marks this row as part of the strict-bidirectional G06 subset. | Confirm the subset relationship. It is a graph-cost category, not a model result. |
-| `original_graph` | Original task graph and endpoints | object; non-null | Parent G06 graph before the local boundary edit, with its ordered endpoints. | Reconstruct the original task and compare with the G06 parent. |
+| `production_case_id` | S06 case ID | string; non-null | Identifies the parent shortest-path task. | Join to S06 Train-200 and its ranking-eligibility row. It is training-related, not a held-out evaluation ID. |
+| `eligibility_category` | Parent eligibility category | string; non-null; always `strict_bidirectional` | Marks this row as part of the strict-bidirectional S06 subset. | Confirm the subset relationship. It is a graph-cost category, not a model result. |
+| `original_graph` | Original task graph and endpoints | object; non-null | Parent S06 graph before the local boundary edit, with its ordered endpoints. | Reconstruct the original task and compare with the S06 parent. |
 | `original_graph.topology` | Original weighted topology | object; non-null | Adjacency map for the Original graph. | Recompute route costs or shortest paths. Dynamic node-ID keys are graph contents. |
 | `original_graph.node_pair` | Original start and destination | array of 2 integers; non-null | Ordered source and destination nodes. | Use these endpoints for all three variants; preserve their order. |
 | `local_stay_graph` | Local Stay graph and endpoints | object; non-null | Same task after assigning the edited edge its Stay weight. | Study the graph just on the side where the old route wins; it is not a separately sampled task. |
@@ -1062,8 +1062,8 @@ integers.
 | `switch_edge_weight` | Local Switch edge weight | integer; non-null | Weight assigned to the edited edge in Local Switch. | Check the opposite-side perturbation. The direction of weight change depends on route edge use. |
 | `boundary_tie_weight` | Route-cost tie weight | integer; non-null | Edited-edge weight at which the two designated routes' total costs are equal, with other edges unchanged. | Interpret the local perturbation. It is a calculated tie for these two routes, not a model threshold. |
 | `original_weight_vocabulary` | Distinct Original edge weights | array of integers; non-null | Sorted distinct set of edge weights appearing in the Original graph. | Check whether local weights reuse values from the Original graph. Most local weights are outside this set; membership is recorded, not required. |
-| `old_path` | Old candidate route | array of integers; non-null | G06 reference route, strictly cheaper in Original and Local Stay. | Compare its cost across the three graphs. It is not globally optimal in Local Switch. |
-| `new_path` | New candidate route | array of integers; non-null | G06 counterfactual route, strictly cheaper in Original's parent Switch and Local Switch. | Compare the candidate against `old_path`. It is not globally optimal in Local Stay. |
+| `old_path` | Old candidate route | array of integers; non-null | S06 reference route, strictly cheaper in Original and Local Stay. | Compare its cost across the three graphs. It is not globally optimal in Local Switch. |
+| `new_path` | New candidate route | array of integers; non-null | S06 counterfactual route, strictly cheaper in Original's parent Switch and Local Switch. | Compare the candidate against `old_path`. It is not globally optimal in Local Stay. |
 | `path_costs` | Candidate-route costs | object; non-null | Costs of both named routes in all three variants. | Measure pairwise route gaps. These values are not themselves all-possible-path minima. |
 | `path_costs.original_old` | Old route cost in Original | integer; non-null | Total cost of `old_path` in `original_graph`. | Compare with Original solver minimum and the new route. |
 | `path_costs.original_new` | New route cost in Original | integer; non-null | Total cost of `new_path` in `original_graph`. | Verify the old route is strictly cheaper in Original. |
@@ -1090,13 +1090,13 @@ integers.
 | `source_artifacts.boundary_sha256` | Boundary-input fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the archived Boundary-Local source records. | Identify the frozen source artifact; not a hash of this individual output row. |
 | `source_artifacts.protocol_sha256` | Protocol fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the recorded Boundary-Local protocol file. | Identify the construction/training protocol version. |
 | `source_artifacts.construction_script_sha256` | Boundary-builder fingerprint | 64-character hexadecimal string; non-null | SHA-256 recorded for the script that builds local boundary examples. | Identify construction provenance; a hash does not explain the algorithm. |
-| `source_artifacts.canonical_training_script_sha256` | Canonical training-script fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the canonical G06 bidirectional training script recorded in the protocol. | Trace the related training artifact; it is not evidence that this resource contains trained weights or measured performance. |
+| `source_artifacts.canonical_training_script_sha256` | Canonical training-script fingerprint | 64-character hexadecimal string; non-null | SHA-256 of the canonical S06 bidirectional training script recorded in the protocol. | Trace the related training artifact; it is not evidence that this resource contains trained weights or measured performance. |
 
 #### E. Research Uses and Scientific Limitations
 
 Boundary-Local records can support analysis of graph-cost comparisons close
 to a two-route tie, or preparation of a controlled local ranking objective.
-Their relation to G06 Train-200 means they are training-related resources,
+Their relation to S06 Train-200 means they are training-related resources,
 not independent held-out tasks.
 
 Here, “preferred” means lower summed edge weight, and the tie boundary is
@@ -1120,13 +1120,13 @@ Hash fields are fingerprints, not semantic guarantees or licensing evidence.
 `teacher_vsp_valid` certifies the recorded final path verification, not all
 Teacher prose. Optionality in this dictionary means a field key is omitted
 from some rows, while nullability means it is present with JSON `null`;
-these distinctions are observed in G09 `view.source_difficulty` (omitted)
+these distinctions are observed in S09 `view.source_difficulty` (omitted)
 and in ranking eligibility (nulls). No field meanings should be inferred
 solely from a key name where the code/provenance does not define them.
 
 ## v0.3 Vanilla-SFT resources
 
-The v0.2 release added two G06 answer-only prompt/completion JSONL files;
+The v0.2 release added two S06 answer-only prompt/completion JSONL files;
 v0.3 renames their published paths without changing bytes:
 
 - `training/vanilla_sft_train_200_prompt_completion_v1.jsonl` (200 records;
@@ -1134,18 +1134,18 @@ v0.3 renames their published paths without changing bytes:
 - `training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` (44 records;
   formerly `answer_only_loss_val_44_prompt_completion_v1.jsonl`)
 
-Each record has the same six-field prompt/completion structure as the G06
+Each record has the same six-field prompt/completion structure as the S06
 Gold resources. `prompt` is the task-only shortest-path question. `completion`
 contains only the final answer in the form `Answer: [node, ...]`; it has no
 reasoning trace. `prompt_sha256` and `completion_sha256` are SHA-256 hashes of
 the corresponding exact UTF-8 strings. `production_case_id` identifies the
 case, and `condition` is `vanilla`. The case IDs, order, prompts, and answers
-are validated against frozen G06 Gold supervision. Train and LossVal case
+are validated against frozen S06 Gold supervision. Train and LossVal case
 sets are disjoint. These are the Vanilla-SFT files; `vanilla` remains the
 record condition identifier. The prior `answer_only` paths remain available
 at the tagged v0.1/v0.2 revisions and through the explicit legacy naming mode.
 
-The public files are reconstructed from validated frozen G06 Gold records;
+The public files are reconstructed from validated frozen S06 Gold records;
 they are not byte-identical to the historical Stage C files. Historical
 answer-only supervision exists for these splits, but no claim is made that a
 historical model checkpoint has been matched to an exact training-file

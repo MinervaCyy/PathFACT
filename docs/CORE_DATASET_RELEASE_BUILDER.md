@@ -9,25 +9,25 @@ the historical v0.1 layout.
 
 The core builder assembles only the first PathFACT release phase:
 
-- G00: allowlisted shortest-path task records.
-- G05: allowlisted paired Student, Gold Teacher and Contrastive Teacher records.
-- G06: four frozen Gold/Contrastive Teacher-reasoning files and, when both
+- S00: allowlisted shortest-path task records.
+- S05: allowlisted paired Student, Gold Teacher and Contrastive Teacher records.
+- S06: four frozen Gold/Contrastive Teacher-reasoning files and, when both
   optional inputs are supplied, two Vanilla-SFT answer-only files.
-- G08: normalized Balanced-300 and TrainDist-300 evaluation views.
-- G09: normalized Balanced-846 and TrainDist-1600 evaluation views.
+- S08: normalized Balanced-300 and TrainDist-300 evaluation views.
+- S09: normalized Balanced-846 and TrainDist-1600 evaluation views.
 
-G02, G04a and G04b are validation inputs for the G05 export. They are not
-exported as standalone files. G08 Diagnostic-117, G09 Pool-1956 and derived
+S02, S04a and S04b are validation inputs for the S05 export. They are not
+exported as standalone files. S08 Diagnostic-117, S09 Pool-1956 and derived
 datasets are outside this operation.
 
 ## Command
 
     pathfact dataset export-core-candidate \
-      --g00 G00.jsonl \
-      --g02 G02.jsonl \
-      --g04a G04A.jsonl \
-      --g04b G04B.jsonl \
-      --g05 G05.jsonl \
+      --g00 S00.jsonl \
+      --g02 S02.jsonl \
+      --g04a S04a.jsonl \
+      --g04b S04b.jsonl \
+      --g05 S05.jsonl \
       --g06-gold-train gold_train_200_prompt_completion_v1.jsonl \
       --g06-contrastive-train contrastive_train_200_prompt_completion_v1.jsonl \
       --g06-gold-loss-val gold_loss_val_44_prompt_completion_v1.jsonl \
@@ -39,19 +39,19 @@ datasets are outside this operation.
       --dataset-version local-core-v0.3 \
       --output-dir pathfact_core_candidate
 
-The exporter defaults to method-based v0.3 filenames. Pass
+The public stages use S00–S09. For released artifact compatibility, the exporter retains its historical G-based CLI option names, file names, Hub configurations, and machine-readable source-stage values; these identify artifacts, not current stage terminology. The exporter defaults to method-based v0.3 filenames. Pass
 `--naming-mode legacy` to reproduce the v0.1/v0.2 filenames.
 
-The default expected counts are G00=2,200, G05=244, Train=200 per condition
-and LossVal=44 per condition. The default G05 tier counts are 141 two-sided
+The default expected counts are S00=2,200, S05=244, Train=200 per condition
+and LossVal=44 per condition. The default S05 tier counts are 141 two-sided
 reasoning-factuality-profiled pairs and 103 VSP-only pairs. Count options are
 configurable to support portable synthetic validation; a canonical release
 candidate should use the defaults.
 
-Evaluation defaults require 300/300 G08 records and 846/1,600 G09 records.
-They also require disjoint G08 views; a 617-case G09 overlap; cross-view
-overlaps of 164/221 for G08 Balanced against G09 Balanced/TrainDist; and
-110/265 for G08 TrainDist against G09 Balanced/TrainDist. The overlap counts
+Evaluation defaults require 300/300 S08 records and 846/1,600 S09 records.
+They also require disjoint S08 views; a 617-case S09 overlap; cross-view
+overlaps of 164/221 for S08 Balanced against S09 Balanced/TrainDist; and
+110/265 for S08 TrainDist against S09 Balanced/TrainDist. The overlap counts
 are configurable only to support smaller synthetic fixtures.
 
 The destination parent must exist and the destination itself must not exist.
@@ -82,7 +82,7 @@ Neither status authorizes redistribution.
 Both modes produce a 10-Core candidate when no Vanilla inputs are supplied.
 The optional inputs add the two Vanilla-SFT resources, producing 12 Core.
 
-For an expanded candidate, provide both additional G06 inputs:
+For an expanded candidate, provide both additional S06 inputs:
 
     --g06-vanilla-train answer_only_train_200_prompt_completion_v1.jsonl
     --g06-vanilla-loss-val answer_only_loss_val_44_prompt_completion_v1.jsonl
@@ -94,12 +94,12 @@ Both options must be supplied together. The expanded candidate contains
     training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl
 
 The three Derived resources are built separately. The published v0.3 suite
-contains 12 Core plus 3 Derived JSONL resources. Its six G06 files are
+contains 12 Core plus 3 Derived JSONL resources. Its six S06 files are
 byte-identical to their v0.2 counterparts, with the method-based names below.
 
 ### SFT method and data identifiers
 
-| Method | Identifier | G06 supervision |
+| Method | Identifier | S06 supervision |
 |---|---|---|
 | Vanilla-SFT | Record condition `vanilla` | Final answer only. |
 | LIMO | `gold` | Ordinary Teacher reasoning and verified answer. |
@@ -126,12 +126,12 @@ exports retain the corresponding filenames without altering historical data.
 
 ### Vanilla-SFT materialisation
 
-Vanilla-SFT uses the same frozen G06 Gold source problems and task-only
+Vanilla-SFT uses the same frozen S06 Gold source problems and task-only
 prompts as the ordinary Teacher supervision. Its target contains only the
 final shortest-path answer, in the form `Answer: [node, ...]`, without a
 reasoning trace.
 
-Generate the release-ready Vanilla files from frozen G06 Gold inputs:
+Generate the release-ready Vanilla files from frozen S06 Gold inputs:
 
     pathfact dataset materialize-vanilla \
       --gold-train gold_train_200_prompt_completion_v1.jsonl \
@@ -150,7 +150,7 @@ answers, internal hashes and Train/LossVal disjointness. It then copies
 the validated Vanilla files byte-for-byte, verifies their file hashes
 and includes them in the release manifest.
 
-The Gold records originate from the validated G06 workflow. Vanilla
+The Gold records originate from the validated S06 workflow. Vanilla
 materialisation does not independently run a shortest-path solver.
 
 ### Historical Vanilla provenance
@@ -161,7 +161,7 @@ fields retain hashes associated with earlier empty-think completions.
 Those hashes do not match the visible answer-only completion strings.
 
 The original research files must remain unchanged. For the expanded
-public candidate, regenerate Vanilla from the frozen Gold G06 inputs
+public candidate, regenerate Vanilla from the frozen Gold S06 inputs
 and use the corrected, internally consistent files.
 
 This reconstruction does not by itself establish the exact input-file
@@ -172,7 +172,7 @@ checkpoint-to-file identification is claimed here.
 
 With both Vanilla inputs, the manifest verifies 12 Core JSONL files
 rather than 10. `metadata/summary.json` includes a Vanilla validation
-report under `g06.vanilla`.
+report under `S06.vanilla`.
 
 Both export modes remain local-candidate operations. Their manifests
 and summaries do not constitute redistribution approval.
@@ -181,27 +181,27 @@ and summaries do not constitute redistribution approval.
 
 The builder:
 
-- uses the established G00 field allowlist;
-- reuses the G05 cross-stage identity, text-hash, Student-failure and Teacher
+- uses the established S00 field allowlist;
+- reuses the S05 cross-stage identity, text-hash, Student-failure and Teacher
   validation-profile checks;
-- preserves the G05 validation tier without independently re-auditing Teacher
+- preserves the S05 validation tier without independently re-auditing Teacher
   reasoning;
-- requires each G06 record to match the established six-field frozen schema;
-- verifies G06 prompt and completion SHA-256 values;
+- requires each S06 record to match the established six-field frozen schema;
+- verifies S06 prompt and completion SHA-256 values;
 - requires matching Gold/Contrastive case IDs, disjoint Train/LossVal IDs and
-  exact agreement between the G06 case union and G05;
-- copies each G06 JSONL byte-for-byte and verifies the copied SHA-256;
-- adapts nested G08 and top-level G09 sources through separate allowlists;
+  exact agreement between the S06 case union and S05;
+- copies each S06 JSONL byte-for-byte and verifies the copied SHA-256;
+- adapts nested S08 and top-level S09 sources through separate allowlists;
 - separates model-facing topology/node-pair inputs from reference path/cost
   labels and task provenance;
-- preserves source-stage and view membership, plus G08 source difficulty;
+- preserves source-stage and view membership, plus S08 source difficulty;
 - rejects duplicate view IDs, inconsistent shared task/reference data,
-  unexpected overlaps and any G06 evaluation overlap;
+  unexpected overlaps and any S06 evaluation overlap;
 - records source and exported hashes in the summary and draft manifest;
 - detects source changes during the operation; and
 - leaves all supplied source files unchanged.
 
-For the canonical data, the required G05 tier counts are 141 pairs with
+For the canonical data, the required S05 tier counts are 141 pairs with
 two-sided reasoning-factuality validation profiles and 103 VSP-only pairs.
 
 ## Limitations
@@ -210,5 +210,5 @@ two-sided reasoning-factuality validation profiles and 103 VSP-only pairs.
 - Content, third-party terms, attribution and exact file-level release review
   remain required before publication.
 - Derived-data release builders are not implemented here.
-- G06 ranking and ID-list metadata are not included in this first builder.
+- S06 ranking and ID-list metadata are not included in this first builder.
 - Manifest v0.1 is an integrity manifest, not a release-approval mechanism.

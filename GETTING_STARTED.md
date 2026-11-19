@@ -22,16 +22,16 @@ Find a route from the first endpoint to the second whose edge weights have the
 smallest possible sum. The number of edges (hops) is not the objective. There
 can be more than one route with the same minimum cost.
 
-In the released G00 example with optimal cost 746, the actual
+In the released S00 example with optimal cost 746, the actual
 `production_case_id` is **`PR01233`**. Its endpoints are `[0, 5]`; the reference
 route is `[0, 1, 2, 3, 4, 5]`, with consecutive edge weights 160, 121, 190,
 108, and 167. These sum to 746. This particular graph has a unique route; that
-does not mean every PathFACT task has a unique optimum. G00 provides tasks and
+does not mean every PathFACT task has a unique optimum. S00 provides tasks and
 reference labels, not Student responses.
 
 ## 3. From Student mistakes to Teacher corrections
 
-G05 is the released paired resource for selected genuine Student failures.
+S05 is the released paired resource for selected genuine Student failures.
 Each record links the task to a Student trace and predicted route, a Gold
 Teacher target, and a Contrastive corrective target linked to that Student
 trace. A route can fail because it has invalid endpoints or edges, repeats a
@@ -52,7 +52,7 @@ for field definitions and validation details.
   graph tasks and reference labels, with no Student responses.
 - **Failure-conditioned supervision:** `paired/g05_paired.jsonl` links
   selected Student failures with Gold and Contrastive Teacher targets.
-- **Frozen supervised fine-tuning examples:** the six v0.3 `training/` G06
+- **Frozen supervised fine-tuning examples:** the six v0.3 `training/` S06
   files cover three methods. Vanilla-SFT uses `vanilla_sft_*` paths and the
   `vanilla` record condition for final-answer-only targets; LIMO uses
   `limo_*` paths and `gold` for ordinary Teacher reasoning; ContrastiveLIMO
@@ -61,9 +61,9 @@ for field definitions and validation details.
   files. These are small task-specific resources, not a general-purpose
   corpus. The `pathfact-v0.1` and `pathfact-v0.2` Hub tags preserve earlier
   filenames.
-- **Completed evaluation views:** the four G08/G09 files in `evaluation/`
+- **Completed evaluation views:** the four S08/S09 files in `evaluation/`
   contain model inputs and reference answers. Keep `reference` out of the model
-  input. The two G09 views overlap, so they are not independent case-level
+  input. The two S09 views overlap, so they are not independent case-level
   replications.
 - **Controlled graph changes:**
   `counterfactual/counterfactual_triples.jsonl` contains Original/Stay/Switch
@@ -79,7 +79,7 @@ relationships.
 
 ## 5. Read your first PathFACT record
 
-Each JSONL line is one JSON object. In a G00 task, `topology` maps node IDs to
+Each JSONL line is one JSON object. In a S00 task, `topology` maps node IDs to
 neighbor/weight pairs, and `node_pair` gives source then target. Download the desired JSONL from the [current PathFACT dataset](https://huggingface.co/datasets/MinervaCYY/PathFACT); the v0.1 fixed revision remains available for historical comparisons. The example assumes your working directory is the release-package root, where `tasks/g00_tasks.jsonl` is located; adjust `dataset` if you store it elsewhere.
 
 The following small Python example loads the first task and prints its
@@ -97,7 +97,7 @@ print(first_task["node_pair"])
 print(first_task["topology"])
 ```
 
-This example was run against the released 2,200-row G00 JSONL; it parsed the
+This example was run against the released 2,200-row S00 JSONL; it parsed the
 first row and read its required fields successfully. Use the same pattern to
 stream a large JSONL file without loading every row into memory.
 
@@ -111,7 +111,7 @@ the model during evaluation.
 
 Other fields record identity, graph-generation settings, selection, or
 sampling. For example, `production_case_id` joins records across stages, while
-G08/G09 view and provenance fields document where an evaluation case came from
+S08/S09 view and provenance fields document where an evaluation case came from
 and how it was selected. **Sampling metadata is not model input.** It should
 not be appended to the model prompt as task information. The [Data Dictionary](DATA_DICTIONARY.md)
 explains the released fields and their caveats.

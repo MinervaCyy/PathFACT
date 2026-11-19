@@ -10,7 +10,7 @@ historical paths and checksums remain available.
 
 **Current dataset release:** PathFACT v0.3 retains 12 Core and 3 Derived
 resources and the exact bytes of all 15 v0.2 JSONL files. It renames only the
-six G06 SFT paths. Vanilla-SFT uses `vanilla_sft_*` filenames and condition
+six S06 SFT paths. Vanilla-SFT uses `vanilla_sft_*` filenames and condition
 `vanilla`; LIMO uses `limo_*` filenames and condition `gold` for ordinary
 Teacher reasoning; ContrastiveLIMO uses `contrastive_limo_*` filenames and
 condition `contrastive` for failure-conditioned corrective Teacher
@@ -53,16 +53,16 @@ The other evaluation modules provide reusable CPU-only extraction and offline ev
 
 ## 2. Verified reproducibility evidence
 
-- G00: 2,200 frozen graph-generation and shortest-path cases verified.
-- G06: seven historical dataset outputs reproduced byte-for-byte.
-- G05: 244/244 joint-valid paired cases passed cross-stage Student/Teacher provenance validation.
-- G05 validation tiers: 141 pairs have additional two-sided reasoning factuality validation profiles; 103 pairs have VSP-only profiles.
+- S00: 2,200 frozen graph-generation and shortest-path cases verified.
+- S06: seven historical dataset outputs reproduced byte-for-byte.
+- S05: 244/244 joint-valid paired cases passed cross-stage Student/Teacher provenance validation.
+- S05 validation tiers: 141 pairs have additional two-sided reasoning factuality validation profiles; 103 pairs have VSP-only profiles.
 - Canonical pipeline freeze: all 86 recorded SHA-256 entries verified.
-- G09 independent freeze manifest: all 12 artifact SHA-256 entries verified.
-- G02/G04: 1,779 historical Student and Teacher VSP records matched.
-- G08/G09: 10,338 saved evaluation records matched across 16 runs.
-- G08/G09: historical answer extraction reproduced for all 10,338 records.
-- G08 Balanced-300 Base task-only: 42 valid predictions reproduced.
+- S09 independent freeze manifest: all 12 artifact SHA-256 entries verified.
+- S02/G04: 1,779 historical Student and Teacher VSP records matched.
+- S08/S09: 10,338 saved evaluation records matched across 16 runs.
+- S08/S09: historical answer extraction reproduced for all 10,338 records.
+- S08 Balanced-300 Base task-only: 42 valid predictions reproduced.
 - Historical provenance regression snapshot: 82 tests passed with historical references configured; zero failures and zero skipped tests. This predates the release-candidate builder tests and is not the current suite total.
 - Earlier release-preparation audit (before Vanilla-SFT expansion): 113 tests discovered, 103 passed and 10 frozen-source checks skipped because reference datasets were not configured. Seven require `PATHFACT_PIPELINE_REFERENCE`, two require `PATHFACT_G00_REFERENCE`, and one requires `PATHFACT_G06_REFERENCE`. These optional frozen datasets are not required for ordinary CPU-only use.
 - Local CPU regression on 2026-11-12, following the Vanilla-SFT extension: 122 tests discovered, 112 passed, 10 frozen-reference tests skipped, and zero failures. The skipped checks do not constitute verification against the unavailable historical reference files.
@@ -105,7 +105,7 @@ with the corrected public candidate files.
 ### Reconstructed public Vanilla-SFT resources
 
 The CPU-only PathFACT builder derives Vanilla-SFT records from
-the frozen G06 Gold Train-200 and LossVal-44 resources.
+the frozen S06 Gold Train-200 and LossVal-44 resources.
 
 It preserves the Gold case IDs, record ordering and task-only
 prompts, while converting the final path to an answer-only
@@ -138,8 +138,8 @@ No such checkpoint-to-dataset-hash claim is made.
 
 The historical PathFACT v0.1 suite contains 10 Core and 3 Derived JSONL
 resources. The v0.2 suite added two Vanilla-SFT Core resources, and v0.3
-renamed the six G06 paths without changing their contents. v0.1 and v0.2
+renamed the six S06 paths without changing their contents. v0.1 and v0.2
 remain pinned at their historical revisions. The reconstructed Vanilla files
-are derived from validated frozen G06 Gold supervision and are distinct from
+are derived from validated frozen S06 Gold supervision and are distinct from
 the unchanged historical Stage C files. No exact training-file SHA-256 is
 claimed for a historical model checkpoint.

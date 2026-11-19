@@ -55,7 +55,7 @@ def main(argv=None) -> int:
         "build-paired-sft",
         help="Construct configurable paired Gold/Contrastive SFT data",
         description=(
-            "Construct paired SFT datasets using G06-style "
+            "Construct paired SFT datasets using S06-style "
             "validated upstream records and configurable splits."
         ),
     )
@@ -130,14 +130,14 @@ def main(argv=None) -> int:
         "--gold-train",
         type=Path,
         required=True,
-        help="Validated G06 Gold Train-200 JSONL",
+        help="Validated S06 Gold Train-200 JSONL",
     )
 
     vanilla_parser.add_argument(
         "--gold-loss-val",
         type=Path,
         required=True,
-        help="Validated G06 Gold LossVal-44 JSONL",
+        help="Validated S06 Gold LossVal-44 JSONL",
     )
 
     vanilla_parser.add_argument(
@@ -187,35 +187,35 @@ def main(argv=None) -> int:
 
     core_export_parser = dataset_commands.add_parser(
         "export-core-candidate",
-        help="Build a local G00/G05/G06/G08/G09 release candidate",
+        help="Build a local S00/S05/S06/S08/S09 release candidate",
         description=(
             "Build a local-only core dataset candidate containing "
-            "allowlisted G00 tasks, allowlisted G05 paired records, "
-            "byte-preserved G06 JSONL files, and normalized G08/G09 "
+            "allowlisted S00 tasks, allowlisted S05 paired records, "
+            "byte-preserved S06 JSONL files, and normalized S08/S09 "
             "evaluation views."
         ),
     )
 
     for flag, description in (
-        ("--g00", "Canonical G00 task JSONL"),
-        ("--g02", "Canonical G02 Student failure JSONL"),
-        ("--g04a", "Canonical G04a Gold Teacher JSONL"),
-        ("--g04b", "Canonical G04b Contrastive Teacher JSONL"),
-        ("--g05", "Canonical G05 joint-valid JSONL"),
-        ("--g06-gold-train", "Frozen G06 Gold Train JSONL"),
+        ("--g00", "Canonical S00 task JSONL"),
+        ("--g02", "Canonical S02 Student failure JSONL"),
+        ("--g04a", "Canonical S04a Gold Teacher JSONL"),
+        ("--g04b", "Canonical S04b Contrastive Teacher JSONL"),
+        ("--g05", "Canonical S05 joint-valid JSONL"),
+        ("--g06-gold-train", "Frozen S06 Gold Train JSONL"),
         (
             "--g06-contrastive-train",
-            "Frozen G06 Contrastive Train JSONL",
+            "Frozen S06 Contrastive Train JSONL",
         ),
-        ("--g06-gold-loss-val", "Frozen G06 Gold LossVal JSONL"),
+        ("--g06-gold-loss-val", "Frozen S06 Gold LossVal JSONL"),
         (
             "--g06-contrastive-loss-val",
-            "Frozen G06 Contrastive LossVal JSONL",
+            "Frozen S06 Contrastive LossVal JSONL",
         ),
-        ("--g08-balanced", "Frozen G08 Balanced JSONL"),
-        ("--g08-train-dist", "Frozen G08 TrainDist JSONL"),
-        ("--g09-balanced", "Frozen G09 Balanced JSONL"),
-        ("--g09-train-dist", "Frozen G09 TrainDist JSONL"),
+        ("--g08-balanced", "Frozen S08 Balanced JSONL"),
+        ("--g08-train-dist", "Frozen S08 TrainDist JSONL"),
+        ("--g09-balanced", "Frozen S09 Balanced JSONL"),
+        ("--g09-train-dist", "Frozen S09 TrainDist JSONL"),
     ):
         core_export_parser.add_argument(
             flag, type=Path, required=True, help=description
@@ -255,8 +255,8 @@ def main(argv=None) -> int:
     )
 
     for flag, default, description in (
-        ("--expected-g00-records", 2200, "Expected G00 records"),
-        ("--expected-paired-records", 244, "Expected G05 records"),
+        ("--expected-g00-records", 2200, "Expected S00 records"),
+        ("--expected-paired-records", 244, "Expected S05 records"),
         ("--expected-train-records", 200, "Expected records per Train file"),
         (
             "--expected-loss-val-records",
@@ -266,57 +266,57 @@ def main(argv=None) -> int:
         (
             "--expected-reasoning-validated-pairs",
             141,
-            "Expected two-sided reasoning-validated G05 pairs",
+            "Expected two-sided reasoning-validated S05 pairs",
         ),
         (
             "--expected-vsp-only-pairs",
             103,
-            "Expected VSP-only G05 pairs",
+            "Expected VSP-only S05 pairs",
         ),
         (
             "--expected-g08-balanced-records",
             300,
-            "Expected G08 Balanced records",
+            "Expected S08 Balanced records",
         ),
         (
             "--expected-g08-train-dist-records",
             300,
-            "Expected G08 TrainDist records",
+            "Expected S08 TrainDist records",
         ),
         (
             "--expected-g09-balanced-records",
             846,
-            "Expected G09 Balanced records",
+            "Expected S09 Balanced records",
         ),
         (
             "--expected-g09-train-dist-records",
             1600,
-            "Expected G09 TrainDist records",
+            "Expected S09 TrainDist records",
         ),
         (
             "--expected-g09-overlap",
             617,
-            "Expected G09 Balanced/TrainDist overlap",
+            "Expected S09 Balanced/TrainDist overlap",
         ),
         (
             "--expected-g08-balanced-g09-balanced-overlap",
             164,
-            "Expected G08 Balanced/G09 Balanced overlap",
+            "Expected S08 Balanced/S09 Balanced overlap",
         ),
         (
             "--expected-g08-balanced-g09-train-dist-overlap",
             221,
-            "Expected G08 Balanced/G09 TrainDist overlap",
+            "Expected S08 Balanced/S09 TrainDist overlap",
         ),
         (
             "--expected-g08-train-dist-g09-balanced-overlap",
             110,
-            "Expected G08 TrainDist/G09 Balanced overlap",
+            "Expected S08 TrainDist/S09 Balanced overlap",
         ),
         (
             "--expected-g08-train-dist-g09-train-dist-overlap",
             265,
-            "Expected G08 TrainDist/G09 TrainDist overlap",
+            "Expected S08 TrainDist/S09 TrainDist overlap",
         ),
     ):
         core_export_parser.add_argument(
@@ -330,21 +330,21 @@ def main(argv=None) -> int:
         "export-derived-candidate",
         help="Build a local draft from verified counterfactual and ranking resources",
         description=(
-            "Normalize frozen counterfactual triples, G06 ranking eligibility, "
+            "Normalize frozen counterfactual triples, S06 ranking eligibility, "
             "and Boundary-Local records into a private local draft candidate."
         ),
     )
     for flag, description in (
         ("--counterfactual", "Finalized Original/Stay/Switch JSONL"),
-        ("--g09-balanced", "Core G09 Balanced evaluation JSONL"),
-        ("--g09-train-dist", "Core G09 TrainDist evaluation JSONL"),
-        ("--ranking", "Frozen G06 ranking source JSONL"),
-        ("--eligibility", "Frozen G06 eligibility JSONL"),
-        ("--core-g06-train", "Core G06 Gold Train JSONL"),
+        ("--g09-balanced", "Core S09 Balanced evaluation JSONL"),
+        ("--g09-train-dist", "Core S09 TrainDist evaluation JSONL"),
+        ("--ranking", "Frozen S06 ranking source JSONL"),
+        ("--eligibility", "Frozen S06 eligibility JSONL"),
+        ("--core-g06-train", "Core S06 Gold Train JSONL"),
         ("--boundary-local", "Frozen Boundary-Local strict-162 JSONL"),
         ("--boundary-protocol", "Frozen Boundary-Local protocol JSON"),
         ("--counterfactual-script", "Frozen counterfactual input construction script"),
-        ("--ranking-script", "Frozen G06 ranking construction script"),
+        ("--ranking-script", "Frozen S06 ranking construction script"),
         ("--boundary-script", "Frozen Boundary-Local construction script"),
         ("--scoring-report", "October 15 unified scoring report JSON"),
     ):
