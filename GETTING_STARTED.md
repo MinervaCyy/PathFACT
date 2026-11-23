@@ -1,6 +1,7 @@
 # Getting Started with PathFACT
 
 Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
+**Version note:** This worked example uses historical PathFACT v0.1 file paths. For v0.3, consult the updated G06 paths in the Hugging Face dataset card. The underlying scientific records remain unchanged.
 
 ## 1. What is PathFACT?
 
