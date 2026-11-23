@@ -25,6 +25,8 @@ PathFACT uses S00–S09 as its public Stage identifiers, including S04a for ordi
 - [6. Guides and resources](#6-guides-and-resources)
 - [7. Reproducibility, availability, and licensing](#7-reproducibility-availability-and-licensing)
 
+**Stage naming:** The manuscript uses S-prefixed stage identifiers (e.g., S00, S06), while the released datasets retain the original G-prefixed identifiers (e.g., G00, G06) for provenance and compatibility. Both refer to the same stages.
+**Method naming:** The manuscript uses **Contrastive-LIMO**, while the released code, datasets, and historical records may retain **ContrastiveLIMO** for provenance and compatibility. Both refer to the same failure-informed SFT method.
 ## 1. Why use PathFACT?
 
 PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
