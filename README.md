@@ -21,6 +21,7 @@ PathFACT helps researchers study this question. It combines **authentic Student 
 - [6. Guides and resources](#6-guides-and-resources)
 - [7. Reproducibility, availability, and licensing](#7-reproducibility-availability-and-licensing)
 
+**Stage naming:** The manuscript uses S-prefixed stage identifiers (e.g., S00, S06), while the released datasets retain the original G-prefixed identifiers (e.g., G00, G06) for provenance and compatibility. Both refer to the same stages.
 ## 1. Why use PathFACT?
 
 PathFACT offers a reusable starting point for experiments that would otherwise require researchers to collect model failures, build corrective examples, and check results from scratch.
