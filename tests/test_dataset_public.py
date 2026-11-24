@@ -382,7 +382,7 @@ class TestPublicDataset(unittest.TestCase):
                 self.evaluation_paths["g09_train_dist"]
             ),
             "output_dir": output,
-            "dataset_version": "synthetic-core-v0.1",
+            "dataset_version": "synthetic-core",
             "expected_g00_records": 2,
             "expected_paired_records": 2,
             "expected_train_records": 1,
@@ -972,7 +972,7 @@ class TestPublicDataset(unittest.TestCase):
             )
             self.assertEqual(
                 entry["schema_version"],
-                "pathfact-evaluation-v0.1",
+                "pathfact-evaluation",
             )
             self.assertEqual(
                 entry["sha256"],
@@ -1476,7 +1476,7 @@ class TestPublicDataset(unittest.TestCase):
 
         command.extend([
             "--output-dir", str(output),
-            "--dataset-version", "synthetic-cli-v0.1",
+            "--dataset-version", "synthetic-cli",
             "--expected-g00-records", "2",
             "--expected-paired-records", "2",
             "--expected-train-records", "1",

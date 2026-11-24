@@ -49,7 +49,7 @@ class TestReleaseManifest(unittest.TestCase):
             {
                 "path": "paired/pairs.jsonl",
                 "source_stage": "G05",
-                "schema_version": "pathfact-paired-v0.1",
+                "schema_version": "pathfact-paired",
                 "source_sha256": {
                     "g00": "a" * 64,
                     "g05": "b" * 64,

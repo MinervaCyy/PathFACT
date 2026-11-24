@@ -1,4 +1,4 @@
-# Derived Dataset Release Builder — Draft v0.1
+# Derived Dataset Release Builder
 
 Status: implemented as a local candidate builder for new derived artifacts.
 Its local candidate output is not itself a public release. The operation does not train models, run inference,
@@ -16,7 +16,7 @@ requires `--dataset-version`. Run `pathfact dataset export-derived-candidate
 
 The builder checks the archived source fingerprints, canonical counts and
 case relationships, validates graph/path/cost semantics in memory, creates a
-private local candidate, verifies its Manifest v0.1, and checks that source
+private local candidate, verifies its manifest, and checks that source
 hashes did not change during the operation. The output is marked
 `release_status: draft_not_approved` and `license: null`. This is not a public
 release, rights review, or approval.

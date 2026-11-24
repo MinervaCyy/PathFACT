@@ -1,7 +1,6 @@
 # Getting Started with PathFACT
 
-Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
-**Version note:** This worked example uses historical PathFACT v0.1 file paths. For v0.3, consult the updated G06 paths in the Hugging Face dataset card. The underlying scientific records remain unchanged.
+Source attribution for examples: PathFACT Dataset, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
 
 ## 1. What is PathFACT?
 
@@ -53,15 +52,14 @@ for field definitions and validation details.
   graph tasks and reference labels, with no Student responses.
 - **Failure-conditioned supervision:** `paired/g05_paired.jsonl` links
   selected Student failures with Gold and Contrastive Teacher targets.
-- **Frozen supervised fine-tuning examples:** the six v0.3 `training/` S06
+- **Frozen supervised fine-tuning examples:** the six `training/` S06
   files cover three methods. Vanilla-SFT uses `vanilla_sft_*` paths and the
   `vanilla` record condition for final-answer-only targets; LIMO uses
   `limo_*` paths and `gold` for ordinary Teacher reasoning; ContrastiveLIMO
   uses `contrastive_limo_*` paths and `contrastive` for failure-conditioned
   corrective Teacher reasoning. Each method has Train-200 and LossVal-44
   files. These are small task-specific resources, not a general-purpose
-  corpus. The `pathfact-v0.1` and `pathfact-v0.2` Hub tags preserve earlier
-  filenames.
+  corpus. The current Hub release provides the method-based filenames.
 - **Completed evaluation views:** the four S08/S09 files in `evaluation/`
   contain model inputs and reference answers. Keep `reference` out of the model
   input. The two S09 views overlap, so they are not independent case-level
@@ -74,14 +72,14 @@ for field definitions and validation details.
   describe geometric path-cost comparisons. They are not model-response
   preferences or learned preference scores.
 
-The [Dataset Map](DATASET_MAP.md) lists all 15 v0.3 resources, counts, and
+The [Dataset Map](DATASET_MAP.md) lists all 15 resources, counts, and
 intended uses. Its overlap section is the reference for detailed split
 relationships.
 
 ## 5. Read your first PathFACT record
 
 Each JSONL line is one JSON object. In a S00 task, `topology` maps node IDs to
-neighbor/weight pairs, and `node_pair` gives source then target. Download the desired JSONL from the [current PathFACT dataset](https://huggingface.co/datasets/MinervaCYY/PathFACT); the v0.1 fixed revision remains available for historical comparisons. The example assumes your working directory is the release-package root, where `tasks/g00_tasks.jsonl` is located; adjust `dataset` if you store it elsewhere.
+neighbor/weight pairs, and `node_pair` gives source then target. Download the desired JSONL from the [PathFACT dataset](https://huggingface.co/datasets/MinervaCYY/PathFACT). The example assumes your working directory is the release-package root, where `tasks/g00_tasks.jsonl` is located; adjust `dataset` if you store it elsewhere.
 
 The following small Python example loads the first task and prints its
 endpoints. It uses only Python's standard library:

@@ -151,7 +151,7 @@ def main(argv=None) -> int:
         "--naming-mode",
         choices=("method", "legacy"),
         default="method",
-        help="Use v0.3 method filenames or historical answer_only filenames",
+        help="Use method-based filenames or legacy answer_only filenames",
     )
 
     export_parser = dataset_commands.add_parser(
@@ -251,7 +251,7 @@ def main(argv=None) -> int:
         "--naming-mode",
         choices=("method", "legacy"),
         default="method",
-        help="Use v0.3 method filenames or historical v0.1/v0.2 filenames",
+        help="Use method-based filenames or legacy filenames",
     )
 
     for flag, default, description in (

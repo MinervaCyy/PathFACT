@@ -2,8 +2,8 @@
 
 Status: implemented local-candidate operation. This builder creates new
 local candidates. The expanded 12-Core candidate supports the published
-PathFACT v0.2 suite; the original 10-Core mode preserves compatibility with
-the historical v0.1 layout.
+PathFACT dataset suite; the original 10-Core mode preserves compatibility with
+the historical layout.
 
 ## Scope
 
@@ -36,11 +36,10 @@ datasets are outside this operation.
       --g08-train-dist G08_TRAIN_DISTRIBUTION_300_V1.jsonl \
       --g09-balanced G09_BALANCED_846_V1.jsonl \
       --g09-train-dist G09_TRAIN_DISTRIBUTION_1600_V1.jsonl \
-      --dataset-version local-core-v0.3 \
+      --dataset-version local-core \
       --output-dir pathfact_core_candidate
 
-The public stages use S00–S09. For released artifact compatibility, the exporter retains its historical G-based CLI option names, file names, Hub configurations, and machine-readable source-stage values; these identify artifacts, not current stage terminology. The exporter defaults to method-based v0.3 filenames. Pass
-`--naming-mode legacy` to reproduce the v0.1/v0.2 filenames.
+The public stages use S00–S09. For released artifact compatibility, the exporter retains its historical G-based CLI option names, file names, Hub configurations, and machine-readable source-stage values; these identify artifacts, not current stage terminology. The exporter defaults to method-based filenames. Pass `--naming-mode legacy` to reproduce older filenames.
 
 The default expected counts are S00=2,200, S05=244, Train=200 per condition
 and LossVal=44 per condition. The default S05 tier counts are 141 two-sided
@@ -58,7 +57,7 @@ The destination parent must exist and the destination itself must not exist.
 The builder stages its output before renaming it into place and does not
 overwrite an existing directory.
 
-## Candidate layout (default v0.3 method names; 10 Core)
+## Candidate layout (default method-based names; 10 Core)
 
     manifest.json
     metadata/summary.json
@@ -74,10 +73,10 @@ overwrite an existing directory.
     evaluation/g09_train_distribution_1600.jsonl
 
 `metadata/summary.json` is marked `local_candidate_not_approved` with a null
-licence. Manifest v0.1 remains `draft_not_approved` with a null licence.
+licence. The manifest remains `draft_not_approved` with a null licence.
 Neither status authorizes redistribution.
 
-## Optional Vanilla-SFT expansion (12-Core candidate; introduced in v0.2)
+## Optional Vanilla-SFT expansion (12-Core candidate; provided with the Vanilla-SFT inputs)
 
 Both modes produce a 10-Core candidate when no Vanilla inputs are supplied.
 The optional inputs add the two Vanilla-SFT resources, producing 12 Core.
@@ -93,9 +92,9 @@ Both options must be supplied together. The expanded candidate contains
     training/vanilla_sft_train_200_prompt_completion_v1.jsonl
     training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl
 
-The three Derived resources are built separately. The published v0.3 suite
-contains 12 Core plus 3 Derived JSONL resources. Its six S06 files are
-byte-identical to their v0.2 counterparts, with the method-based names below.
+The three Derived resources are built separately. The published dataset
+contains 12 Core plus 3 Derived JSONL resources. Its six S06 files use the
+method-based names below.
 
 ### SFT method and data identifiers
 
@@ -108,7 +107,7 @@ byte-identical to their v0.2 counterparts, with the method-based names below.
 The method names are distinct from the preserved dataset condition values.
 Existing Hub configuration names and record values are not renamed.
 
-## Legacy naming mode (v0.1/v0.2)
+## Legacy naming mode (earlier releases)
 
 Use `--naming-mode legacy` with `export-core-candidate` to reproduce these
 historical paths:
@@ -120,9 +119,7 @@ historical paths:
     training/answer_only_train_200_prompt_completion_v1.jsonl
     training/answer_only_loss_val_44_prompt_completion_v1.jsonl
 
-The same option is available for `materialize-vanilla`. The Hub tags
-`pathfact-v0.1` and `pathfact-v0.2` pin historical layouts; local legacy
-exports retain the corresponding filenames without altering historical data.
+The same option is available for `materialize-vanilla`. Local legacy exports retain historical filenames without altering source data.
 
 ### Vanilla-SFT materialisation
 
@@ -211,4 +208,4 @@ two-sided reasoning-factuality validation profiles and 103 VSP-only pairs.
   remain required before publication.
 - Derived-data release builders are not implemented here.
 - S06 ranking and ID-list metadata are not included in this first builder.
-- Manifest v0.1 is an integrity manifest, not a release-approval mechanism.
+- This manifest is an integrity manifest, not a release-approval mechanism.

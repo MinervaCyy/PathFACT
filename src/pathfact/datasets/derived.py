@@ -22,9 +22,9 @@ from pathfact.datasets.manifest import (
 )
 
 
-CF_SCHEMA = "pathfact-counterfactual-triples-v0.1"
-RANK_SCHEMA = "pathfact-ranking-eligibility-v0.1"
-BOUNDARY_SCHEMA = "pathfact-boundary-local-v0.1"
+CF_SCHEMA = "pathfact-counterfactual-triples"
+RANK_SCHEMA = "pathfact-ranking-eligibility"
+BOUNDARY_SCHEMA = "pathfact-boundary-local"
 CF_SHA256 = "f5879593a53f38943e8b3b991e1ee704c51c58ddd2a3379d524996d62053fb13"
 CF_SCRIPT_SHA256 = "35d6f71ebfcee55058c5411b0d56ed377c864df296f738348f79cb16c37fcd5d"
 RANK_SCRIPT_SHA256 = "63edd57749c604171e55718a28afb3c1dedbe84197d122bfb36638c5a7cd6014"
@@ -505,7 +505,7 @@ def export_derived_candidate(*, counterfactual_path, g09_balanced_path,
                              counterfactual_script_path,
                              ranking_script_path, boundary_script_path,
                              scoring_report_path,
-                             output_dir, dataset_version="pathfact-derived-v0.1",
+                             output_dir, dataset_version="pathfact-derived",
                              expected_counterfactual_sha256=CF_SHA256,
                              expected_ranking_sha256=RANK_SHA256,
                              expected_eligibility_sha256=ELIGIBILITY_SHA256,
@@ -563,7 +563,7 @@ def export_derived_candidate(*, counterfactual_path, g09_balanced_path,
         manifest_path=create_release_manifest(staging,artifacts,dataset_version)
         verification=verify_release_manifest(staging)
         summary={
-            "schema_version": "pathfact-derived-candidate-v0.1",
+            "schema_version": "pathfact-derived-candidate",
             "dataset_version": dataset_version,
             "release_status": "draft_not_approved",
             "license": None,

@@ -1,10 +1,8 @@
 # PathFACT Dataset Map
 
-The published v0.3 suite contains twelve Core and three Derived JSONL
-resources (15 total). The prior v0.2 suite also contained 15 resources; v0.3
-renames the six S06 SFT paths without changing file bytes. The 13-resource
-v0.1 suite (10 Core, 3 Derived) and v0.2 naming layout remain historical.
-Public stage names use S00–S09. Retained paths and machine-readable identifiers such as `g00_tasks.jsonl` and `g05_paired.jsonl` preserve the released artifact names. Counts below were checked against the v0.3 upload manifest and released
+PathFACT contains twelve Core and three Derived JSONL resources (15 total),
+covering tasks, supervision, training, evaluation, and derived resources.
+Public stage names use S00–S09. Retained paths and machine-readable identifiers such as `g00_tasks.jsonl` and `g05_paired.jsonl` preserve the released artifact names. Counts below were checked against the upload manifest and released
 records. This file is the GitHub repository guide; the Hugging Face
 [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) is a
 separate publication document with license scope and release disclosures.
@@ -44,22 +42,10 @@ Core files.
 The method names are distinct from condition identifiers. Hub configuration
 IDs and record values (`vanilla`, `gold`, `contrastive`) are preserved.
 
-## v0.3 S06 filename migration
+## S06 method-based filenames
 
-The six v0.2 paths remain available at the pinned `pathfact-v0.2` Hugging
-Face revision. The v0.3 paths below contain byte-identical files:
-
-| v0.2 path | v0.3 path |
-|---|---|
-| `training/answer_only_train_200_prompt_completion_v1.jsonl` | `training/vanilla_sft_train_200_prompt_completion_v1.jsonl` |
-| `training/answer_only_loss_val_44_prompt_completion_v1.jsonl` | `training/vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` |
-| `training/gold_train_200_prompt_completion_v1.jsonl` | `training/limo_train_200_prompt_completion_v1.jsonl` |
-| `training/gold_loss_val_44_prompt_completion_v1.jsonl` | `training/limo_loss_val_44_prompt_completion_v1.jsonl` |
-| `training/contrastive_train_200_prompt_completion_v1.jsonl` | `training/contrastive_limo_train_200_prompt_completion_v1.jsonl` |
-| `training/contrastive_loss_val_44_prompt_completion_v1.jsonl` | `training/contrastive_limo_loss_val_44_prompt_completion_v1.jsonl` |
-
-The public exporter defaults to method-based filenames. Use
-`--naming-mode legacy` to reproduce the v0.1/v0.2 paths.
+The public exporter uses method-based filenames by default. A legacy naming
+option remains available for workflows that depend on earlier filenames.
 
 ## Derived resources (3)
 

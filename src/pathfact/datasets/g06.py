@@ -127,7 +127,7 @@ def materialize_g06(
     The default settings reproduce the historical G06 split.
     Input files are read-only; output_dir must not already exist. The
     default frozen filenames use current method names; select
-    naming_mode="legacy" to reproduce the pre-v0.3 names.
+    naming_mode="legacy" to reproduce previous filenames.
 
     Returns a dictionary mapping output names to paths.
     """

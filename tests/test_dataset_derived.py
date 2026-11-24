@@ -268,7 +268,7 @@ class TestDerivedHelpers(unittest.TestCase):
                         boundary_path=source_paths[6], boundary_protocol_path=source_paths[7],
                         counterfactual_script_path=source_paths[8], ranking_script_path=source_paths[9],
                         boundary_script_path=source_paths[10],
-                        scoring_report_path=scoring, output_dir=target, dataset_version="synthetic-v0.1",
+                        scoring_report_path=scoring, output_dir=target, dataset_version="synthetic",
                     )
 
             first, second = build(root / "candidate-a"), build(root / "candidate-b")
@@ -289,7 +289,7 @@ class TestDerivedHelpers(unittest.TestCase):
                     boundary_path=source_paths[6], boundary_protocol_path=source_paths[7],
                     counterfactual_script_path=source_paths[8], ranking_script_path=source_paths[9],
                     boundary_script_path=source_paths[10],
-                    scoring_report_path=scoring, output_dir=occupied, dataset_version="synthetic-v0.1",
+                    scoring_report_path=scoring, output_dir=occupied, dataset_version="synthetic",
                 )
 
 

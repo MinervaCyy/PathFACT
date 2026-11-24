@@ -509,7 +509,7 @@ def export_public_pairs(
                 )
 
                 record = {
-                    "schema_version": "pathfact-paired-v0.1",
+                    "schema_version": "pathfact-paired",
                     "production_case_id": pid,
                     "task": tasks[pid],
                     "student": student,
@@ -543,7 +543,7 @@ def export_public_pairs(
             )
 
         summary = {
-            "schema_version": "pathfact-paired-v0.1",
+            "schema_version": "pathfact-paired",
             "release_status": "local_candidate_not_approved",
             "input_sha256": input_sha256,
             "paired_sha256": _sha256_file(
@@ -734,7 +734,7 @@ def _public_evaluation_record(
         view["source_difficulty"] = source_difficulty
 
     return {
-        "schema_version": "pathfact-evaluation-v0.1",
+        "schema_version": "pathfact-evaluation",
         "production_case_id": pid,
         "view": view,
         "model_input": _select(
@@ -1064,7 +1064,7 @@ def export_core_release_candidate(
     The validated G06 files are copied byte-for-byte. Frozen inputs are
     never modified. G08/G09 are normalized through explicit evaluation
     allowlists. The destination must not already exist. `naming_mode`
-    selects v0.3 method-based paths or the historical v0.1/v0.2 paths.
+    selects method-based public paths or the historical legacy paths.
     """
     import json
     import os
@@ -1342,13 +1342,13 @@ def export_core_release_candidate(
             {
                 "path": "tasks/g00_tasks.jsonl",
                 "source_stage": "G00",
-                "schema_version": "pathfact-g00-public-v0.1",
+                "schema_version": "pathfact-g00-public",
                 "source_sha256": input_sha256["g00"],
             },
             {
                 "path": "paired/g05_paired.jsonl",
                 "source_stage": "G05",
-                "schema_version": "pathfact-paired-v0.1",
+                "schema_version": "pathfact-paired",
                 "source_sha256": {
                     name: input_sha256[name]
                     for name in ("g00", "g02", "g04a", "g04b", "g05")
@@ -1368,7 +1368,7 @@ def export_core_release_candidate(
             artifacts.append({
                 "path": destination.relative_to(staging).as_posix(),
                 "source_stage": "G08" if name.startswith("g08") else "G09",
-                "schema_version": "pathfact-evaluation-v0.1",
+                "schema_version": "pathfact-evaluation",
                 "source_sha256": input_sha256[name],
             })
 
@@ -1378,7 +1378,7 @@ def export_core_release_candidate(
         manifest_report = verify_release_manifest(staging)
 
         summary = {
-            "schema_version": "pathfact-core-candidate-v0.2",
+            "schema_version": "pathfact-core-candidate",
             "dataset_version": dataset_version,
             "release_status": "local_candidate_not_approved",
             "license": None,

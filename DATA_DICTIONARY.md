@@ -1,8 +1,8 @@
-# PathFACT Dataset Data Dictionary (v0.3)
+# PathFACT Dataset Data Dictionary
 
-Source attribution for examples: PathFACT Dataset v0.1, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
+Source attribution for examples: PathFACT Dataset, MinervaCYY/PathFACT, [fixed revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Dataset excerpts are subject to the release's limited CC BY 4.0 scope and exclusions described in the [Hugging Face Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT). The repository's MIT licence applies to software, not automatically to dataset content.
 
-The S00, S05, S06 Teacher-reasoning, evaluation, and Derived sections below describe the 13 scientific JSONL files first released in v0.1, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. PathFACT v0.2 preserved those resources and added the two Vanilla-SFT files. v0.3 changes the paths of the six S06 SFT resources without changing their bytes, schema, or condition values. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
+The S00, S05, S06 Teacher-reasoning, evaluation, and Derived sections describe the published scientific JSONL resources, checked against every local row on 2026-11-04 and the implementation in `src/pathfact/datasets/public.py`, `derived.py`, `historical_vsp.py`, and `graphs/canonical.py`. JSON types below are observed types; `null` means JSON null. All listed ordinary fields were present on every row unless an optionality note says otherwise. Node IDs are graph-map keys, not schema fields.
 
 ## S00 task records: `tasks/g00_tasks.jsonl`
 
@@ -120,7 +120,7 @@ reference route and cost are solver answers, not Student answers.
 
 | Exact original field path | Display name | JSON type and nullability | Explanation | Research use | Caveat |
 |---|---|---|---|---|---|
-| `schema_version` | Paired-record format | string; non-null | Format label `pathfact-paired-v0.1`. | Select a compatible reader. | Schema label, not a scientific condition. |
+| `schema_version` | Paired-record format | string; non-null | Format label `pathfact-paired`. | Select a compatible reader. | Schema label, not a scientific condition. |
 | `production_case_id` | Case ID | string; non-null | Identifies the paired case. | Join this record to the same case in other stages. | Identifier, not a task or model property. |
 | `task` | Shortest-path task | object; non-null | Contains graph, endpoints, reference answer, and task metadata. | Use its graph and endpoints as the problem; use reference fields for scoring. | Preserves the S00 task as a nested object. |
 | `task.production_case_id` | Task case ID | string; non-null | Case ID inside the task object. | Check task identity. | Matches the top-level case ID; not a second case. |
@@ -338,9 +338,9 @@ their stated limits.
 
 ## S06 prompt/completion resources
 
-The original v0.1 release contains four frozen Teacher-reasoning SFT files:
+The dataset contains four frozen Teacher-reasoning SFT files:
 Gold Train-200, Contrastive Train-200, Gold LossVal-44, and Contrastive
-LossVal-44. The v0.2 release adds Vanilla-SFT Train-200 and LossVal-44 files.
+LossVal-44, plus Vanilla-SFT Train-200 and LossVal-44 files.
 Each record is one prompt paired with a target completion. The conditions
 share case IDs within each split, so they are paired views of the same tasks
 rather than independent task samples.
@@ -349,7 +349,7 @@ rather than independent task samples.
 
 | Method | Dataset identifier | Files | Supervision |
 |---|---|---|---|
-| Vanilla-SFT | `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without a reasoning trace. The v0.2 filename prefix was `answer_only`. |
+| Vanilla-SFT | `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only, without a reasoning trace. |
 | LIMO | `gold` | `limo_train_200_prompt_completion_v1.jsonl`; `limo_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
 | ContrastiveLIMO | `contrastive` | `contrastive_limo_train_200_prompt_completion_v1.jsonl`; `contrastive_limo_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
 
@@ -403,7 +403,7 @@ non-null in the released records.
 | Original field | Human-readable display name | JSON type | Plain-English explanation | Research use and interpretation caveat |
 |---|---|---|---|---|
 | `production_case_id` | Case ID | string | Identifies the graph task paired with this example. | Join to the matching S05/S00 case and align Gold with Contrastive. A shared ID means the same task, not an independent example. |
-| `condition` | Supervision condition | string | For these original four files, `gold` or `contrastive` names the target condition. The v0.2 Vanilla files use `vanilla`. | Distinguish the three SFT methods. It is not a split label; Train versus LossVal is identified by the file. |
+| `condition` | Supervision condition | string | For these original four files, `gold` or `contrastive` names the target condition. The expanded release Vanilla files use `vanilla`. | Distinguish the three SFT methods. It is not a split label; Train versus LossVal is identified by the file. |
 | `prompt` | Model input prompt | string | Frozen input text, including the graph/task request; Contrastive prompts also include the frozen incorrect Student reasoning trace and corrective instructions. | Feed this text as model input. Do not confuse the included Student reasoning in Contrastive with the Student's submitted final answer, or with the Teacher completion. |
 | `prompt_sha256` | Prompt text fingerprint | string (64-character hexadecimal SHA-256) | Hash of the exact UTF-8 prompt string. | Check that prompt bytes/text have not changed. A hash is an integrity check, not a model-quality measure. |
 | `completion` | Target completion | string | Frozen SFT target: Teacher reasoning text followed by the verified answer path. | Use as the target for supervised fine-tuning or loss calculation. It is a target, not an observed output from a model trained on S06. |
@@ -517,7 +517,7 @@ schema fields.
 
 | Exact original field path | Human-readable display name | JSON type and optionality | Plain-English explanation | When to use it and caveat |
 |---|---|---|---|---|
-| `schema_version` | Evaluation-record format | string; required, non-null | Format identifier `pathfact-evaluation-v0.1`. | Select a compatible reader. It is a schema label, not an evaluation split. |
+| `schema_version` | Evaluation-record format | string; required, non-null | Format identifier `pathfact-evaluation`. | Select a compatible reader. It is a schema label, not an evaluation split. |
 | `production_case_id` | Case ID | string; required, non-null | Stable identifier for this graph task. | Join the same case across stages and count unique tasks. Repeated membership in views does not create a new task. |
 | `view` | Evaluation-view information | object; required, non-null | Stores source stage and view label, plus the S08 source difficulty when supplied. | Identify which evaluation view contains the record. View membership is not an answer or model result. |
 | `model_input` | Model-facing task | object; required, non-null | Holds only the graph and ordered endpoint pair. | Provide this object to the model. Keep `reference` separate. |
@@ -658,7 +658,7 @@ the provenance object below shows selected fields only.
 
 ```json
 {
-  "schema_version": "pathfact-evaluation-v0.1",
+  "schema_version": "pathfact-evaluation",
   "production_case_id": "PR01238",
   "view": {"source_stage": "S09", "name": "balanced"},
   "model_input": {
@@ -1124,10 +1124,9 @@ these distinctions are observed in S09 `view.source_difficulty` (omitted)
 and in ranking eligibility (nulls). No field meanings should be inferred
 solely from a key name where the code/provenance does not define them.
 
-## v0.3 Vanilla-SFT resources
+## Vanilla-SFT resources
 
-The v0.2 release added two S06 answer-only prompt/completion JSONL files;
-v0.3 renames their published paths without changing bytes:
+The two S06 answer-only prompt/completion JSONL files use these published paths:
 
 - `training/vanilla_sft_train_200_prompt_completion_v1.jsonl` (200 records;
   formerly `answer_only_train_200_prompt_completion_v1.jsonl`)
@@ -1142,8 +1141,8 @@ the corresponding exact UTF-8 strings. `production_case_id` identifies the
 case, and `condition` is `vanilla`. The case IDs, order, prompts, and answers
 are validated against frozen S06 Gold supervision. Train and LossVal case
 sets are disjoint. These are the Vanilla-SFT files; `vanilla` remains the
-record condition identifier. The prior `answer_only` paths remain available
-at the tagged v0.1/v0.2 revisions and through the explicit legacy naming mode.
+record condition identifier. Earlier `answer_only` paths can be reproduced
+through the explicit legacy naming mode.
 
 The public files are reconstructed from validated frozen S06 Gold records;
 they are not byte-identical to the historical Stage C files. Historical

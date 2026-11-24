@@ -2,23 +2,23 @@
 
 This document records verified historical source fingerprints, implementation mappings, and reproducibility evidence.
 
-**Historical dataset release (2026-11-04):** PathFACT v0.1 contained 13 resources (10 Core, 3 Derived) and is preserved at Hugging Face revision [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). Its limited CC BY 4.0 scope is separate from the software MIT licence and excludes third-party material outside publisher authority.
+**Dataset provenance (2026-11-04):** The initial scientific snapshot is
+preserved at Hugging Face revision
+[`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f).
+Its limited CC BY 4.0 scope is separate from the software MIT licence and
+excludes third-party material outside publisher authority.
 
-**Pre-migration release:** PathFACT v0.2 contains 15 resources (12 Core,
-3 Derived) and is pinned by the Hugging Face `pathfact-v0.2` tag. Its
-historical paths and checksums remain available.
-
-**Current dataset release:** PathFACT v0.3 retains 12 Core and 3 Derived
-resources and the exact bytes of all 15 v0.2 JSONL files. It renames only the
-six S06 SFT paths. Vanilla-SFT uses `vanilla_sft_*` filenames and condition
+**Published dataset:** PathFACT contains 12 Core and 3 Derived resources
+(15 total). The six S06 files use method-based paths. Vanilla-SFT uses
+`vanilla_sft_*` filenames and condition
 `vanilla`; LIMO uses `limo_*` filenames and condition `gold` for ordinary
 Teacher reasoning; ContrastiveLIMO uses `contrastive_limo_*` filenames and
 condition `contrastive` for failure-conditioned corrective Teacher
 reasoning. Configuration identifiers, JSONL schema, and condition values
-are unchanged. The public exporter retains a legacy mode for the historical
-v0.1/v0.2 filename layouts.
+are unchanged. The public exporter retains a legacy mode for earlier filename
+layouts.
 
-Historical-status note: statements in the release-boundary section about permissions and licensing record the status when this provenance document was prepared. The subsequent v0.1 release package records researcher authorization for its scoped publication. This does not establish institutional approval or rights in excluded material. RC1 manifests remain historical and unchanged.
+Historical-status note: statements in the release-boundary section about permissions and licensing record the status when this provenance document was prepared. The subsequent published package records researcher authorization for its scoped publication. This does not establish institutional approval or rights in excluded material. RC1 manifests remain historical and unchanged.
 
 Historical research scripts are provenance references, not dependencies of the public execution environment.
 
@@ -136,10 +136,9 @@ No such checkpoint-to-dataset-hash claim is made.
 
 ### Release boundary
 
-The historical PathFACT v0.1 suite contains 10 Core and 3 Derived JSONL
-resources. The v0.2 suite added two Vanilla-SFT Core resources, and v0.3
-renamed the six S06 paths without changing their contents. v0.1 and v0.2
-remain pinned at their historical revisions. The reconstructed Vanilla files
+The dataset contains 12 Core and 3 Derived JSONL resources, including two
+Vanilla-SFT Core resources. The six S06 files use method-based paths. Earlier
+source layouts remain pinned at their historical revisions. The reconstructed Vanilla files
 are derived from validated frozen S06 Gold supervision and are distinct from
 the unchanged historical Stage C files. No exact training-file SHA-256 is
 claimed for a historical model checkpoint.

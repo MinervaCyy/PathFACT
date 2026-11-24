@@ -105,7 +105,7 @@ flowchart TB
     class S00,S05,TRAIN,VAL dataset
 ```
 
-**How to read the figure:** S00 contains solver-labelled graph problems. S01 retains 1,525 cases with usable Student failures, and S02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. S04a and S04b retain accepted ordinary and corrective Teacher targets separately. **S05 is their intersection (244 cases), not the sum of 559 and 259.** S06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. In the historical v0.1 files, each split has an ordinary file and a corrective file with matching case IDs; v0.2 adds an answer-only Vanilla-SFT file for each split. Loss validation measures training-target loss, not independent task-solving ability.
+**How to read the figure:** S00 contains solver-labelled graph problems. S01 retains 1,525 cases with usable Student failures, and S02 selects 961 of these cases, freezing one incorrect Student reasoning trace per case. S04a and S04b retain accepted ordinary and corrective Teacher targets separately. **S05 is their intersection (244 cases), not the sum of 559 and 259.** S06 divides those same 244 case IDs into 200 training cases and 44 loss-validation cases. Each split has an ordinary file, a corrective file, and an answer-only Vanilla-SFT file with matching case IDs. Loss validation measures training-target loss, not independent task-solving ability.
 
 **Why was S03 needed?** The original Student and Teacher data were collected in multiple experimental runs, not one end-to-end batch. An earlier set of Teacher experiments was followed by additional experiments. When assembling the final canonical dataset, we therefore needed to determine which selected S02 failures could be reliably linked to the Teacher input or output records saved from those runs. **S03 was created to consolidate those batches and check their consistency.** It did not generate new Student failures or Teacher responses. It belongs between S02 and G04 in the frozen construction lineage, but is not drawn as an additional Teacher-generation action in this conceptual figure.
 
@@ -349,33 +349,30 @@ Researchers provide their own environments for Student and Teacher inference, fi
 Finally, **a solver-verified optimal answer does not automatically mean that every sentence in the model's reasoning is correct**. PathFACT distinguishes final-answer verification from the additional reasoning checks recorded for some supervision examples.
 
 
-## 3. Published dataset releases
+## 3. Published dataset
 
-The current PathFACT v0.3 release contains **12 Core and 3 Derived JSONL
-resources (15 total)**. It preserves the bytes of all 15 v0.2 resources and
-renames only the six S06 SFT paths to match Vanilla-SFT, LIMO, and
-ContrastiveLIMO. v0.1 and v0.2 remain available at their historical revisions
-with their original filenames and checksum inventories.
+The PathFACT dataset contains **12 Core and 3 Derived JSONL resources (15
+total)**, covering tasks, paired supervision, training, evaluation, and
+derived preference resources.
 
 ### SFT methods and dataset identifiers
 
 | Method | Dataset identifier | S06 files | Supervision |
 |---|---|---|---|
-| **Vanilla-SFT** | Record condition `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only; the historical v0.1/v0.2 filename prefix was `answer_only`. |
+| **Vanilla-SFT** | Record condition `vanilla` | `vanilla_sft_train_200_prompt_completion_v1.jsonl`; `vanilla_sft_loss_val_44_prompt_completion_v1.jsonl` | Final answer only. |
 | **LIMO** | Record condition `gold` | `limo_train_200_prompt_completion_v1.jsonl`; `limo_loss_val_44_prompt_completion_v1.jsonl` | Ordinary Teacher reasoning and verified answer. |
 | **ContrastiveLIMO** | Record condition `contrastive` | `contrastive_limo_train_200_prompt_completion_v1.jsonl`; `contrastive_limo_loss_val_44_prompt_completion_v1.jsonl` | Failure-conditioned corrective Teacher reasoning and verified answer. |
 
-The Hub configuration identifiers remain `g06_vanilla_train_200`,
+The Hub configuration identifiers are `g06_vanilla_train_200`,
 `g06_vanilla_loss_val_44`, `g06_gold_train_200`,
 `g06_gold_loss_val_44`, `g06_contrastive_train_200`, and
 `g06_contrastive_loss_val_44`. `Gold` and `Contrastive` describe supervision
-conditions; LIMO and ContrastiveLIMO are method names. All six pre-migration
-paths remain available in the tagged v0.1/v0.2 revisions. Dataset exporters
-accept `--naming-mode legacy` to reproduce those layouts; the default uses
-the v0.3 method-based filenames. The `vanilla`, `gold`, and `contrastive`
-record condition values are unchanged.
+conditions; LIMO and ContrastiveLIMO are method names. Dataset exporters use
+the method-based filenames by default. The `vanilla`,
+`gold`, and `contrastive` record condition values identify the supervision
+methods.
 
-### Historical v0.1 release contents
+### Dataset contents
 
 | Resource | What you get | Why it matters |
 |---|---|---|
@@ -384,10 +381,7 @@ record condition values are unchanged.
 | **Derived datasets (C2)** | 354 counterfactual triples; 200 ranking-eligibility records; 162 Boundary-Local records | Study graph changes and answer-level preferences with solver-derived labels |
 | **Completed experiments (C3)** | SFT comparisons, graph-change tests, Single/Dual Ranking comparisons, and saved evaluation evidence described in project guides | Investigate what training and preference learning do, including where they do not help |
 
-The historical v0.1 suite contained **10 Core and 3 Derived JSONL files**.
-The v0.2 suite contained **12 Core and 3 Derived**; v0.3 retains those same
-resources at new S06 paths. The dataset is a
-**standalone research contribution**, not merely a demo for the Python
+The dataset is a **standalone research contribution**, not merely a demo for the Python
 package. Browse the [Dataset Map](DATASET_MAP.md) for all 15 current files
 and their relationships, and the [Data Dictionary](DATA_DICTIONARY.md) for
 exact fields and validation limits.
@@ -433,7 +427,7 @@ Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record a
 ## 6. Guides and resources
 
 - [Getting Started](GETTING_STARTED.md) - first example and model/reference fields.
-- [Dataset Map](DATASET_MAP.md) - all 15 v0.3 JSONL files, counts, stages, and overlaps.
+- [Dataset Map](DATASET_MAP.md) - all 15 JSONL files, counts, stages, and overlaps.
 - [Data Dictionary](DATA_DICTIONARY.md) - dataset fields and validation caveats.
 - [Offline Evaluation](docs/EVALUATION.md) - inputs, scoring policies, outputs, and limitations.
 - [Source Provenance](docs/SOURCE_PROVENANCE.md) - verified source history and reproducibility evidence.
@@ -442,7 +436,7 @@ Start with the [Getting Started guide](GETTING_STARTED.md) for a worked record a
 
 ## 7. Reproducibility, availability, and licensing
 
-The historical v0.1 scientific release is preserved at [revision `3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The pre-migration v0.2 naming layout is pinned by the Hugging Face `pathfact-v0.2` tag. The current v0.3 release contains 15 scientific JSONL resources at method-based S06 paths; all bytes and condition values are unchanged from v0.2. The public CPU-only framework does not provide Student/Teacher LLM inference or model training: researchers supply their own model environments for those operations. The current dataset card documents the release scope, licensing, and provenance.
+The dataset contains 15 scientific JSONL resources at method-based S06 paths. The public CPU-only framework does not provide Student/Teacher LLM inference or model training: researchers supply their own model environments for those operations. The dataset card documents the release scope, licensing, and provenance.
 
 The software is licensed under **MIT**. The dataset has a **limited CC BY 4.0 scope**, with third-party exclusions described in the [Dataset Card](https://huggingface.co/datasets/MinervaCYY/PathFACT) and [Dataset Licensing](docs/DATASET_LICENSE.md). The software licence does not automatically grant rights to dataset content.
 

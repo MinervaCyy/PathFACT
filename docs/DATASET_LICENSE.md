@@ -1,8 +1,8 @@
 # PathFACT Dataset Licensing
 
-Status (2026-11-04): PathFACT v0.1 is publicly released on Hugging Face at revision [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The 13-file suite contains 10 Core and 3 Derived resources. Its CC BY 4.0 scope is limited to material the dataset publishers are authorized to license; third-party content and rights outside that authority are excluded. This is distinct from the software's MIT licence.
+Status (2026-11-04): PathFACT dataset is publicly released on Hugging Face at revision [`3d20d452e1efe21c80d55185f5176ca3fc5e4f9f`](https://huggingface.co/datasets/MinervaCYY/PathFACT/tree/3d20d452e1efe21c80d55185f5176ca3fc5e4f9f). The 13-file suite contains 10 Core and 3 Derived resources. Its CC BY 4.0 scope is limited to material the dataset publishers are authorized to license; third-party content and rights outside that authority are excluded. This is distinct from the software's MIT licence.
 
-Historical-status note: the draft-manifest statements below describe local RC1/candidate artifacts and the release-preparation state when this document was first written. That pending status was superseded by the subsequent v0.1 publication; the historical manifests remain unchanged.
+Historical-status note: the draft-manifest statements below describe local RC1/candidate artifacts and the release-preparation state when this document was first written. That pending status was superseded by the public release; the historical manifests remain unchanged.
 
 ## Dataset licence scope
 
@@ -14,7 +14,7 @@ Licence: https://creativecommons.org/licenses/by/4.0/
 
 The root MIT LICENSE applies to the PathFACT software, not automatically to separately distributed datasets.
 
-Dataset licensing applies only to the materials identified in the published v0.1 release and its Dataset Card.
+Dataset licensing applies only to the materials identified in the published dataset and its Dataset Card.
 
 Third-party materials, external model weights, and content subject to separate terms are not automatically covered.
 

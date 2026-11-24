@@ -10,7 +10,7 @@ from pathlib import Path
 from pathfact.datasets.io import DatasetFormatError, iter_jsonl
 
 
-SCHEMA = "pathfact-release-manifest-v0.1"
+SCHEMA = "pathfact-release-manifest"
 
 RELEASE_DIRS = {
     "tasks", "student", "teacher", "paired",
@@ -277,7 +277,7 @@ def verify_release_manifest(root_dir):
         or manifest.get("license") is not None
     ):
         raise DatasetFormatError(
-            "Manifest v0.1 is draft-only; "
+            "This manifest is draft-only; "
             "integrity verification is not release approval"
         )
 
